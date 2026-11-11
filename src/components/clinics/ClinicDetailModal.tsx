@@ -4,6 +4,7 @@ import { Modal } from '../common/Modal';
 import { ClinicMemberModal } from './ClinicMemberModal';
 import { formatCNPJ, formatCEP, formatPhone } from '../../utils/cnpj';
 import { formatCPF } from '../../utils/cpf';
+import { getLiveContractStatus, getContractStatusBadgeClass } from '../../utils/contract';
 import {
   Building2,
   Stethoscope,
@@ -19,6 +20,9 @@ import {
   Search,
   Users,
   Award,
+  Calendar,
+  FileText,
+  Clock,
 } from 'lucide-react';
 
 interface ClinicDetailModalProps {
@@ -44,7 +48,7 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
   onDeleteMember,
   onToggleMemberStatus,
 }) => {
-  const [activeTab, setActiveTab] = useState<'details' | 'team'>('team');
+  const [activeTab, setActiveTab] = useState<'team' | 'units' | 'contract' | 'details'>('team');
   const [memberSearch, setMemberSearch] = useState('');
   const [memberRoleFilter, setMemberRoleFilter] = useState<'ALL' | 'MEDICO' | 'SECRETARIA'>('ALL');
 
@@ -55,7 +59,10 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
 
   if (!clinic) return null;
 
+  const liveContract = getLiveContractStatus(clinic.contractStatus, clinic.contractEndDate);
+  const units = clinic.units || [];
   const members = clinic.members || [];
+
   const filteredMembers = members.filter((m) => {
     const matchesSearch =
       m.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
@@ -110,12 +117,23 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
         maxWidth="2xl"
       >
         <div className="space-y-6">
-          {/* Top Banner / Quick Info */}
+          {/* Top Banner / Quick Info with Logo */}
           <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-50 via-indigo-50/40 to-sky-50/40 border border-slate-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-indigo-200">
-                <Building2 className="w-6 h-6" />
-              </div>
+              {clinic.logo ? (
+                <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 p-1.5 flex items-center justify-center shrink-0 shadow-xs">
+                  <img
+                    src={clinic.logo}
+                    alt={clinic.companyName}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-indigo-200">
+                  <Building2 className="w-7 h-7" />
+                </div>
+              )}
+
               <div className="min-w-0">
                 <h3 className="text-base font-bold text-slate-800 truncate">
                   {clinic.companyName}
@@ -123,7 +141,7 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
                 {clinic.tradeName && clinic.tradeName !== clinic.companyName && (
                   <p className="text-xs text-slate-500 font-medium">Nome Fantasia: {clinic.tradeName}</p>
                 )}
-                <div className="flex flex-wrap items-center gap-2 mt-1">
+                <div className="flex flex-wrap items-center gap-2 mt-1.5">
                   <span
                     className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
                       clinic.status === 'ATIVO'
@@ -141,6 +159,17 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
                       </>
                     )}
                   </span>
+
+                  {/* Contract status pill */}
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${getContractStatusBadgeClass(
+                      liveContract.status
+                    )}`}
+                  >
+                    <FileText className="w-3 h-3" />
+                    {liveContract.label}
+                  </span>
+
                   <span className="text-[11px] font-mono text-slate-500">
                     CNPJ: {formatCNPJ(clinic.cnpj)}
                   </span>
@@ -172,30 +201,57 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
           </div>
 
           {/* Navigation Sub-Tabs */}
-          <div className="flex items-center gap-2 border-b border-slate-200 pb-1">
+          <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1 overflow-x-auto">
             <button
               type="button"
               onClick={() => setActiveTab('team')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'team'
                   ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <Users className="w-4 h-4" />
-              Equipe & Profissionais ({members.length})
+              Equipe & Médicos ({members.length})
             </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('units')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+                activeTab === 'units'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <MapPin className="w-4 h-4" />
+              Unidades de Atendimento ({units.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('contract')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+                activeTab === 'contract'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              Contrato & Vigência
+            </button>
+
             <button
               type="button"
               onClick={() => setActiveTab('details')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'details'
                   ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <Building2 className="w-4 h-4" />
-              Dados Cadastrais & Endereço
+              Dados Gerais & CRM
             </button>
           </div>
 
@@ -365,6 +421,21 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
                             </div>
                           )}
 
+                          {/* Units where this member works */}
+                          {member.unitNames && member.unitNames.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-1 mb-2">
+                              {member.unitNames.map((un) => (
+                                <span
+                                  key={un}
+                                  className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md flex items-center gap-1"
+                                >
+                                  <MapPin className="w-2.5 h-2.5 text-indigo-500" />
+                                  {un}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
                           {/* Member contact details */}
                           <div className="space-y-1 text-[11px] text-slate-600">
                             <p className="flex items-center gap-1.5 truncate">
@@ -424,7 +495,162 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
             </div>
           )}
 
-          {/* TAB 2: CLINIC DETAILS & ADDRESS */}
+          {/* TAB 2: MULTIPLE CLINIC UNITS */}
+          {activeTab === 'units' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-800">
+                    Unidades & Filiais Cadastradas
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Locais físicos onde os pacientes poderão ser atendidos no agendamento.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onEditClinic(clinic)}
+                  className="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold rounded-xl transition flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Gerenciar Unidades
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">
+                {units.map((unit, idx) => (
+                  <div
+                    key={unit.id || idx}
+                    className={`p-4 rounded-2xl border ${
+                      unit.isMain
+                        ? 'bg-white border-indigo-200 ring-2 ring-indigo-500/10 shadow-xs'
+                        : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                          <MapPin className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">{unit.name}</p>
+                          {unit.isMain && (
+                            <span className="text-[10px] font-bold text-indigo-600 uppercase">
+                              Matriz Principal
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                          unit.status === 'ATIVO'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-slate-200 text-slate-600'
+                        }`}
+                      >
+                        {unit.status}
+                      </span>
+                    </div>
+
+                    <div className="text-[11px] text-slate-600 space-y-1 mt-2">
+                      <p className="font-medium text-slate-800">
+                        {[unit.street, unit.number].filter(Boolean).join(', ')}
+                        {unit.complement ? ` - ${unit.complement}` : ''}
+                      </p>
+                      <p>
+                        {[unit.neighborhood, unit.city, unit.state].filter(Boolean).join(' • ')}
+                      </p>
+                      {unit.zipCode && (
+                        <p className="font-mono text-slate-400 text-[10px]">
+                          CEP: {formatCEP(unit.zipCode)}
+                        </p>
+                      )}
+                      {unit.phone && (
+                        <p className="flex items-center gap-1 text-indigo-700 font-medium pt-1">
+                          <Phone className="w-3 h-3" /> {formatPhone(unit.phone)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: CONTRACT STATUS & DETAILS */}
+          {activeTab === 'contract' && (
+            <div className="space-y-4">
+              {/* Contract Card */}
+              <div className="p-5 bg-gradient-to-r from-slate-50 via-indigo-50/30 to-sky-50/30 border border-slate-200 rounded-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Fase Contratual
+                    </span>
+                    <span
+                      className={`inline-block mt-1 px-3 py-1 rounded-xl text-xs font-bold border ${getContractStatusBadgeClass(
+                        liveContract.status
+                      )}`}
+                    >
+                      {liveContract.label}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => onEditClinic(clinic)}
+                    className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50 transition flex items-center gap-1"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" /> Alterar Contrato
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200/70">
+                  <div className="p-3 bg-white border border-slate-100 rounded-xl">
+                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                      <Calendar className="w-3.5 h-3.5 text-indigo-600" /> Início de Vigência
+                    </span>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {clinic.contractStartDate
+                        ? new Date(clinic.contractStartDate + 'T00:00:00').toLocaleDateString('pt-BR')
+                        : 'Não informada'}
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-white border border-slate-100 rounded-xl">
+                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                      <Clock className="w-3.5 h-3.5 text-indigo-600" /> Data Final (Vencimento)
+                    </span>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {clinic.contractEndDate
+                        ? new Date(clinic.contractEndDate + 'T00:00:00').toLocaleDateString('pt-BR')
+                        : 'Vigência indeterminada'}
+                    </p>
+                    {liveContract.daysRemaining !== null && (
+                      <p className="text-[11px] font-medium text-indigo-600 mt-0.5">
+                        {liveContract.daysRemaining > 0
+                          ? `${liveContract.daysRemaining} dias restantes`
+                          : `Vencido há ${Math.abs(liveContract.daysRemaining)} dias`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {clinic.contractNotes && (
+                  <div className="p-3 bg-white border border-slate-100 rounded-xl">
+                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                      Observações de Negociação / Cláusulas
+                    </span>
+                    <p className="text-xs text-slate-700 whitespace-pre-line leading-relaxed">
+                      {clinic.contractNotes}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: GENERAL DETAILS */}
           {activeTab === 'details' && (
             <div className="space-y-4">
               {/* Technical Responsible Section */}
@@ -470,33 +696,11 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
                 </div>
               </div>
 
-              {/* Address Section */}
-              <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-indigo-600" />
-                  Endereço Cadastrado
-                </span>
-                <div className="text-xs text-slate-700 leading-relaxed space-y-1">
-                  <p className="font-semibold text-slate-900">
-                    {[clinic.street, clinic.number].filter(Boolean).join(', ')}
-                    {clinic.complement ? ` - ${clinic.complement}` : ''}
-                  </p>
-                  <p>
-                    {[clinic.neighborhood, clinic.city, clinic.state].filter(Boolean).join(' • ')}
-                  </p>
-                  {clinic.zipCode && (
-                    <p className="font-mono text-slate-500">
-                      CEP: {formatCEP(clinic.zipCode)}
-                    </p>
-                  )}
-                </div>
-              </div>
-
               {/* Contact Information */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="p-3.5 bg-white border border-slate-200/80 rounded-xl">
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
-                    <Phone className="w-3.5 h-3.5 text-indigo-600" /> Telefone / WhatsApp
+                    <Phone className="w-3.5 h-3.5 text-indigo-600" /> Telefone Geral
                   </span>
                   <p className="text-xs font-semibold text-slate-800">
                     {clinic.phone ? formatPhone(clinic.phone) : 'Não informado'}
@@ -531,13 +735,14 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
         </div>
       </Modal>
 
-      {/* Member Form Modal (Médico / Secretária) */}
+      {/* Member Form Modal (Médico / Secretária) with Units passed */}
       <ClinicMemberModal
         isOpen={isMemberModalOpen}
         onClose={() => setIsMemberModalOpen(false)}
         onSubmit={handleMemberSubmit}
         clinicId={clinic.id}
         clinicName={clinic.tradeName || clinic.companyName}
+        units={units}
         initialMember={selectedMemberForEdit}
         isSubmitting={isSubmittingMember}
       />

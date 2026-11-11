@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Upload, X, Building2, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Building2 } from 'lucide-react';
 
 interface ClinicLogoUploaderProps {
   logo?: string;
