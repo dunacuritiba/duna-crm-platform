@@ -6,11 +6,8 @@ import {
   Building2,
   Target,
   UserCheck,
-  Shield,
   Lock,
-  Info,
   CalendarCheck,
-  Headphones,
   Briefcase,
 } from 'lucide-react';
 
@@ -156,35 +153,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               );
             })}
           </nav>
-        </div>
-
-        {/* Bottom Helper Box */}
-        <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2 text-xs">
-          <div className="flex items-center gap-2 font-semibold text-slate-800">
-            {isAdmin ? (
-              <>
-                <Shield className="w-4 h-4 text-violet-600" />
-                <span>Perfil Administrador</span>
-              </>
-            ) : isAttendant ? (
-              <>
-                <Headphones className="w-4 h-4 text-amber-600" />
-                <span>Equipe de Atendimento</span>
-              </>
-            ) : (
-              <>
-                <Info className="w-4 h-4 text-sky-600" />
-                <span>Perfil USUÁRIO</span>
-              </>
-            )}
-          </div>
-          <p className="text-slate-500 text-[11px] leading-relaxed">
-            {isAdmin
-              ? 'Acesso total para criar e editar usuários, distribuir carteiras e gerenciar o CRM.'
-              : isAttendant
-              ? 'Acesso às clínicas da sua carteira e à gestão de agendas dos pacientes.'
-              : 'Acesso restrito a "Meus Dados". Não pode alterar e-mail ou data de nascimento.'}
-          </p>
         </div>
       </aside>
     </>

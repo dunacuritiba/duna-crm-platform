@@ -10,10 +10,8 @@ import {
   Calendar,
   Lock,
   CheckCircle2,
-  ShieldCheck,
   Building,
   Phone,
-  Info,
 } from 'lucide-react';
 
 interface MyProfileProps {
@@ -43,35 +41,6 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Role explanation banner */}
-      {isStandardUser ? (
-        <div className="p-4 sm:p-5 bg-amber-50/80 border border-amber-200/80 rounded-2xl flex items-start gap-3.5 text-amber-900 shadow-xs">
-          <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="text-xs sm:text-sm">
-            <p className="font-semibold text-amber-950">
-              Acesso Restrito: Perfil USUÁRIO
-            </p>
-            <p className="mt-1 text-amber-800/90 leading-relaxed">
-              Você está conectado como <strong>USUÁRIO</strong>. De acordo com as diretrizes do CRM, você
-              tem permissão para atualizar sua <strong>foto de perfil</strong> e contato. Para garantir a
-              integridade cadastral, campos sensíveis como <strong>E-mail</strong>,{' '}
-              <strong>Documento (CPF)</strong> e <strong>Data de Nascimento</strong> são estritamente bloqueados para alteração.
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="p-4 sm:p-5 bg-indigo-50/80 border border-indigo-200/80 rounded-2xl flex items-start gap-3.5 text-indigo-900 shadow-xs">
-          <ShieldCheck className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
-          <div className="text-xs sm:text-sm">
-            <p className="font-semibold text-indigo-950">Perfil com Acesso Total: ADMINISTRADOR</p>
-            <p className="mt-1 text-indigo-800/90 leading-relaxed">
-              Você tem permissões de gerenciamento completas sobre a plataforma CRM, podendo criar usuários,
-              inativar contas e gerenciar acessos.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Main Profile Form */}
       <form onSubmit={handleSave} className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         {/* Cover / Header section */}

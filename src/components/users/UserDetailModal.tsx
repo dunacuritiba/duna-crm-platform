@@ -10,8 +10,6 @@ import {
   Building,
   Phone,
   Clock,
-  Shield,
-  Headphones,
   Edit2,
   Briefcase,
 } from 'lucide-react';
@@ -102,35 +100,6 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
               {new Date(user.createdAt).toLocaleDateString('pt-BR')}
             </p>
           </div>
-        </div>
-
-        {/* Access level overview */}
-        <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl text-xs space-y-1.5">
-          <div className="flex items-center gap-2 font-semibold text-slate-700">
-            {user.role === 'ADMIN' ? (
-              <>
-                <Shield className="w-4 h-4 text-violet-600" />
-                <span>Nível de Permissão: Acesso Total (Administrador)</span>
-              </>
-            ) : user.role === 'ATENDENTE' ? (
-              <>
-                <Headphones className="w-4 h-4 text-amber-600" />
-                <span>Nível de Permissão: Equipe de Atendimento</span>
-              </>
-            ) : (
-              <>
-                <Shield className="w-4 h-4 text-sky-600" />
-                <span>Nível de Permissão: Acesso Padrão (USUÁRIO)</span>
-              </>
-            )}
-          </div>
-          <p className="text-slate-500 leading-relaxed">
-            {user.role === 'ADMIN'
-              ? 'Pode gerenciar todos os usuários, criar e editar cadastros, distribuir carteiras de clientes e alterar configurações globais do CRM.'
-              : user.role === 'ATENDENTE'
-              ? `Membro da equipe de atendimento responsável pela gestão da carteira de clínicas e pelas agendas dos pacientes (${user.assignedClinicsCount || 0} clínicas atribuídas).`
-              : 'Possui acesso restrito exclusivamente à tela "Meus Dados". Pode atualizar foto de perfil, porém e-mail e data de nascimento são estritamente protegidos.'}
-          </p>
         </div>
 
         {/* Footer actions */}

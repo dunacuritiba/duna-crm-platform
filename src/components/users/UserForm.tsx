@@ -10,7 +10,6 @@ import {
   Calendar,
   AlertCircle,
   CheckCircle2,
-  ShieldAlert,
   RefreshCw,
 } from 'lucide-react';
 
@@ -132,19 +131,6 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
-      {/* Notice about Default USUARIO role */}
-      <div className="p-4 bg-sky-50/80 border border-sky-200/70 rounded-2xl flex items-start gap-3 text-sky-900 text-xs sm:text-sm">
-        <ShieldAlert className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
-        <div>
-          <p className="font-semibold text-sky-950">Perfil de Acesso Padrão: USUÁRIO</p>
-          <p className="mt-0.5 text-sky-800/90 leading-relaxed">
-            Ao cadastrar, este acesso será automaticamente criado como <strong>USUÁRIO</strong>. Ele terá
-            permissão de acesso apenas à seção <strong>&quot;Meus Dados&quot;</strong>, podendo atualizar a foto
-            de perfil, mas impedido de alterar dados sensíveis como e-mail e data de nascimento.
-          </p>
-        </div>
-      </div>
-
       {/* Photo Uploader (File or Device Camera) */}
       <PhotoUploader
         value={formData.avatar}
