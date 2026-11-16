@@ -10,7 +10,6 @@ import {
   XCircle,
   Eye,
   Calendar,
-  CreditCard,
   Building,
   Edit2,
   Briefcase,
@@ -44,8 +43,7 @@ export const UserList: React.FC<UserListProps> = ({
     return users.filter((u) => {
       const matchSearch =
         u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.email.toLowerCase().includes(search.toLowerCase()) ||
-        u.cpf.includes(search);
+        u.email.toLowerCase().includes(search.toLowerCase());
 
       const matchRole = roleFilter === 'ALL' || u.role === roleFilter;
       const matchStatus = statusFilter === 'ALL' || u.status === statusFilter;
@@ -64,7 +62,7 @@ export const UserList: React.FC<UserListProps> = ({
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar por nome, e-mail ou CPF..."
+              placeholder="Buscar por nome ou e-mail..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/90 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition"
@@ -168,11 +166,10 @@ export const UserList: React.FC<UserListProps> = ({
       {/* Desktop & Tablet Table View */}
       <div className="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600 min-w-[880px]">
+          <table className="w-full text-left text-sm text-slate-600 min-w-[760px]">
             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-6 whitespace-nowrap">Usuário</th>
-                <th className="py-3.5 px-4 whitespace-nowrap">Documento (CPF)</th>
                 <th className="py-3.5 px-4 whitespace-nowrap">Nascimento / Idade</th>
                 <th className="py-3.5 px-4 whitespace-nowrap">Perfil</th>
                 <th className="py-3.5 px-4 whitespace-nowrap">Status</th>
@@ -182,7 +179,7 @@ export const UserList: React.FC<UserListProps> = ({
             <tbody className="divide-y divide-slate-100">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={5} className="py-12 text-center text-slate-400">
                     Nenhum usuário encontrado para os critérios selecionados.
                   </td>
                 </tr>
@@ -226,11 +223,6 @@ export const UserList: React.FC<UserListProps> = ({
                             </div>
                           </div>
                         </div>
-                      </td>
-
-                      {/* CPF */}
-                      <td className="py-4 px-4 font-mono text-xs text-slate-700 whitespace-nowrap">
-                        {user.cpf}
                       </td>
 
                       {/* Nascimento / Idade */}
@@ -365,10 +357,6 @@ export const UserList: React.FC<UserListProps> = ({
 
                 <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-100">
                   <div className="flex items-center gap-1.5 text-slate-600">
-                    <CreditCard className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="font-mono">{user.cpf}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-slate-600">
                     <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span>
                       {formatDateBR(user.birthDate)} ({age}a)
@@ -378,7 +366,7 @@ export const UserList: React.FC<UserListProps> = ({
                     <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span>{user.department || 'Geral'}</span>
                   </div>
-                  <div>
+                  <div className="col-span-2 pt-0.5">
                     <StatusBadge status={user.status} size="sm" />
                   </div>
                 </div>

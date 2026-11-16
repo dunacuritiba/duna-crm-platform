@@ -4,7 +4,6 @@ import { Modal } from '../common/Modal';
 import { RoleBadge, StatusBadge } from '../common/Badge';
 import { formatDateBR, calculateAge } from '../../utils/date';
 import {
-  CreditCard,
   Mail,
   Calendar,
   Building,
@@ -57,13 +56,6 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
 
         {/* Detailed Information Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-3.5 bg-white border border-slate-100 rounded-xl shadow-xs">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
-              <CreditCard className="w-3.5 h-3.5 text-indigo-500" /> Documento (CPF)
-            </span>
-            <p className="text-sm font-mono font-medium text-slate-800">{user.cpf}</p>
-          </div>
-
           <div className="p-3.5 bg-white border border-slate-100 rounded-xl shadow-xs">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
               <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Nascimento
