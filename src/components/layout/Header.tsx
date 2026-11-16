@@ -57,11 +57,17 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center gap-3 p-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition text-left"
           >
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              className="w-8 h-8 rounded-full object-cover border border-slate-200"
-            />
+            <div className="relative inline-block shrink-0">
+              <img
+                src={currentUser.avatar}
+                alt={currentUser.name}
+                className="w-8 h-8 rounded-full object-cover border border-slate-200"
+              />
+              <span
+                className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full shadow-xs ring-1 ring-emerald-600/20"
+                title="Online agora"
+              />
+            </div>
             <div className="hidden md:block text-left">
               <p className="text-xs font-semibold text-slate-800 leading-none">{currentUser.name}</p>
               <div className="flex items-center gap-1.5 mt-1">
@@ -83,13 +89,25 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 p-3 space-y-3 animate-in fade-in zoom-in-95">
                 {/* User card info */}
                 <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-3">
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    className="w-10 h-10 rounded-full object-cover shrink-0 border border-white shadow-xs"
-                  />
+                  <div className="relative inline-block shrink-0">
+                    <img
+                      src={currentUser.avatar}
+                      alt={currentUser.name}
+                      className="w-10 h-10 rounded-full object-cover shrink-0 border border-white shadow-xs"
+                    />
+                    <span
+                      className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full shadow-xs ring-1 ring-emerald-600/20"
+                      title="Online agora"
+                    />
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-slate-800 truncate">{currentUser.name}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-slate-800 truncate">{currentUser.name}</p>
+                      <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1 py-0.2 rounded-full shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Online
+                      </span>
+                    </div>
                     <p className="text-[11px] text-slate-500 truncate">{currentUser.email}</p>
                     <div className="mt-1">
                       <RoleBadge role={currentUser.role} size="sm" />

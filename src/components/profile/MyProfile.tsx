@@ -71,13 +71,23 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
                   <UserIcon className="w-12 h-12" />
                 </div>
               )}
+              <span
+                className="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-4 border-white rounded-full shadow-md ring-1 ring-emerald-600/20"
+                title="Online agora"
+              />
             </div>
 
             {/* Identity Info */}
             <div className="text-center sm:text-left pt-2 sm:pt-6 flex-1">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
-                {currentUser.name}
-              </h2>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
+                  {currentUser.name}
+                </h2>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Online
+                </span>
+              </div>
               <p className="text-sm text-slate-500 flex items-center justify-center sm:justify-start gap-2 mt-1">
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
                 {currentUser.email}

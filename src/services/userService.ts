@@ -25,7 +25,37 @@ export function mapDbToUser(row: any): User {
     otpExpiresAt: row.otp_expires_at || null,
     otpType: row.otp_type || null,
     isVerified: row.is_verified ?? true,
+    lastSeenAt: row.last_seen_at || undefined,
   };
+}
+
+/**
+ * Update user heartbeat / presence timestamp in Supabase
+ */
+export async function updateUserPresence(userId: string): Promise<void> {
+  if (!userId) return;
+  try {
+    await supabase
+      .from('crm_users')
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq('id', userId);
+  } catch (err) {
+    console.warn('Erro ao atualizar presença do usuário:', err);
+  }
+}
+
+/**
+ * Checks whether a user is currently considered online
+ * - Current user is always online
+ * - Other active users are considered online if their last_seen_at is within the last 5 minutes
+ */
+export function isUserOnline(user: User, currentUserId?: string): boolean {
+  if (user.status !== 'ATIVO') return false;
+  if (currentUserId && user.id === currentUserId) return true;
+  if (!user.lastSeenAt) return false;
+  const lastSeenMs = new Date(user.lastSeenAt).getTime();
+  const diffMs = Date.now() - lastSeenMs;
+  return diffMs <= 5 * 60 * 1000;
 }
 
 /**

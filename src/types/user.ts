@@ -22,6 +22,8 @@ export interface User {
   isVerified?: boolean;
   assignedClinicsCount?: number;
   assignedClinicIds?: string[];
+  lastSeenAt?: string;
+  isOnline?: boolean;
 }
 
 export interface CreateUserInput {

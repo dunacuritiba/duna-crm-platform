@@ -14,6 +14,7 @@ import {
   loginUser,
   updateSupabaseUserSelf,
   updateSupabaseUserByAdmin,
+  updateUserPresence,
   getCurrentUserId,
   clearCurrentSession,
 } from './services/userService';
@@ -187,6 +188,31 @@ export function App() {
       setIsLoading(false);
     }
   }, []);
+
+  // Silent user refresh without screen loading
+  const refreshUsersSilently = useCallback(async () => {
+    try {
+      const data = await fetchUsersFromSupabase();
+      setUsers(data);
+    } catch {
+      // silent refresh
+    }
+  }, []);
+
+  // Heartbeat presence update (every 45s)
+  useEffect(() => {
+    if (!isAuthenticated || !currentUserIdState) return;
+
+    // Send immediate presence update
+    updateUserPresence(currentUserIdState);
+
+    const interval = setInterval(() => {
+      updateUserPresence(currentUserIdState);
+      refreshUsersSilently();
+    }, 45000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, currentUserIdState, refreshUsersSilently]);
 
   useEffect(() => {
     const initApp = async () => {
@@ -839,7 +865,8 @@ export function App() {
             <>
               {currentTab === 'overview' && currentUser.role === 'ADMIN' && (
                 <Overview
-                  users={users}
+                  users={enrichedUsers}
+                  currentUserId={currentUser.id}
                   onOpenCreateModal={() => setIsCreateModalOpen(true)}
                   onGoToUsers={() => handleSelectTab('users')}
                   onViewUser={(user) => setSelectedUserForDetail(user)}
@@ -1001,6 +1028,7 @@ export function App() {
       {/* Modal: Detalhes do Usuário */}
       <UserDetailModal
         user={selectedUserForDetail}
+        currentUserId={currentUser?.id}
         isOpen={!!selectedUserForDetail}
         onClose={() => setSelectedUserForDetail(null)}
         onOpenEditModal={(u) => {

@@ -3,6 +3,7 @@ import type { User } from '../../types/user';
 import { Modal } from '../common/Modal';
 import { RoleBadge, StatusBadge } from '../common/Badge';
 import { formatDateBR, calculateAge } from '../../utils/date';
+import { isUserOnline } from '../../services/userService';
 import {
   CreditCard,
   Mail,
@@ -12,10 +13,12 @@ import {
   Clock,
   Edit2,
   Briefcase,
+  Activity,
 } from 'lucide-react';
 
 interface UserDetailModalProps {
   user: User | null;
+  currentUserId?: string;
   isOpen: boolean;
   onClose: () => void;
   onOpenEditModal?: (user: User) => void;
@@ -24,6 +27,7 @@ interface UserDetailModalProps {
 
 export const UserDetailModal: React.FC<UserDetailModalProps> = ({
   user,
+  currentUserId,
   isOpen,
   onClose,
   onOpenEditModal,
@@ -32,23 +36,38 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
   if (!user) return null;
 
   const age = calculateAge(user.birthDate);
+  const online = isUserOnline(user, currentUserId);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Detalhes do Usuário" subtitle={`ID: ${user.id}`}>
       <div className="space-y-6">
         {/* User Card Header */}
         <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-200/80 rounded-2xl">
-          <img
-            src={user.avatar}
-            alt={user.name}
-            className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-sm ring-1 ring-slate-200"
-          />
+          <div className="relative inline-block shrink-0">
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-sm ring-1 ring-slate-200"
+            />
+            {online && (
+              <span
+                className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-xs ring-1 ring-emerald-600/20"
+                title="Online agora"
+              />
+            )}
+          </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-base font-bold text-slate-800 truncate">{user.name}</h3>
             <p className="text-xs text-slate-500 truncate">{user.email}</p>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <RoleBadge role={user.role} size="sm" />
               <StatusBadge status={user.status} size="sm" />
+              {online && (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Online agora
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -94,10 +113,28 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
 
           <div className="p-3.5 bg-white border border-slate-100 rounded-xl shadow-xs">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+              <Activity className="w-3.5 h-3.5 text-indigo-500" /> Status de Presença
+            </span>
+            <p className="text-sm font-medium text-slate-800">
+              {online ? (
+                <span className="text-emerald-700 font-semibold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Ativo na plataforma agora
+                </span>
+              ) : user.lastSeenAt ? (
+                `Visto por último em ${new Date(user.lastSeenAt).toLocaleString('pt-BR')}`
+              ) : (
+                'Offline'
+              )}
+            </p>
+          </div>
+
+          <div className="p-3.5 bg-white border border-slate-100 rounded-xl shadow-xs sm:col-span-2">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
               <Clock className="w-3.5 h-3.5 text-indigo-500" /> Cadastrado em
             </span>
             <p className="text-sm font-medium text-slate-800">
-              {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+              {new Date(user.createdAt).toLocaleDateString('pt-BR')} às {new Date(user.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>
         </div>
