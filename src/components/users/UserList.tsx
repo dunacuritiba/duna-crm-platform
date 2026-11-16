@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { User, UserRole, UserStatus } from '../../types/user';
 import { RoleBadge, StatusBadge } from '../common/Badge';
-import { formatDateBR, calculateAge } from '../../utils/date';
 import {
   Search,
   UserPlus,
@@ -9,7 +8,6 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
-  Calendar,
   Building,
   Edit2,
   Briefcase,
@@ -166,11 +164,10 @@ export const UserList: React.FC<UserListProps> = ({
       {/* Desktop & Tablet Table View */}
       <div className="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600 min-w-[760px]">
+          <table className="w-full text-left text-sm text-slate-600 min-w-[680px]">
             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-6 whitespace-nowrap">Usuário</th>
-                <th className="py-3.5 px-4 whitespace-nowrap">Nascimento / Idade</th>
                 <th className="py-3.5 px-4 whitespace-nowrap">Perfil</th>
                 <th className="py-3.5 px-4 whitespace-nowrap">Status</th>
                 <th className="py-3.5 px-6 text-right whitespace-nowrap">Ações</th>
@@ -179,14 +176,13 @@ export const UserList: React.FC<UserListProps> = ({
             <tbody className="divide-y divide-slate-100">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={4} className="py-12 text-center text-slate-400">
                     Nenhum usuário encontrado para os critérios selecionados.
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => {
                   const isCurrent = user.id === currentUserId;
-                  const age = calculateAge(user.birthDate);
 
                   return (
                     <tr
@@ -223,16 +219,6 @@ export const UserList: React.FC<UserListProps> = ({
                             </div>
                           </div>
                         </div>
-                      </td>
-
-                      {/* Nascimento / Idade */}
-                      <td className="py-4 px-4 text-xs whitespace-nowrap">
-                        <div className="text-slate-700 font-medium">
-                          {formatDateBR(user.birthDate)}
-                        </div>
-                        {age !== null && (
-                          <div className="text-[11px] text-slate-400">{age} anos</div>
-                        )}
                       </td>
 
                       {/* Role & Portfolio */}
@@ -324,7 +310,6 @@ export const UserList: React.FC<UserListProps> = ({
         ) : (
           filteredUsers.map((user) => {
             const isCurrent = user.id === currentUserId;
-            const age = calculateAge(user.birthDate);
 
             return (
               <div
@@ -355,20 +340,12 @@ export const UserList: React.FC<UserListProps> = ({
                   <RoleBadge role={user.role} size="sm" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-100">
-                  <div className="flex items-center gap-1.5 text-slate-600">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>
-                      {formatDateBR(user.birthDate)} ({age}a)
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between text-xs py-2 border-y border-slate-100">
                   <div className="flex items-center gap-1.5 text-slate-600">
                     <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span>{user.department || 'Geral'}</span>
                   </div>
-                  <div className="col-span-2 pt-0.5">
-                    <StatusBadge status={user.status} size="sm" />
-                  </div>
+                  <StatusBadge status={user.status} size="sm" />
                 </div>
 
                 <div className="pt-1 flex flex-wrap sm:flex-nowrap items-center gap-2">
