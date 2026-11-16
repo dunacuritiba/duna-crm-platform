@@ -66,7 +66,8 @@ import { RegisterView } from './components/auth/RegisterView';
 import { VerifyOtpView } from './components/auth/VerifyOtpView';
 import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
 import { ResetPasswordView } from './components/auth/ResetPasswordView';
-import { RefreshCw, Building2, Target } from 'lucide-react';
+import { ScreenLoading } from './components/common/ScreenLoading';
+import { Building2, Target, Loader2, Layers } from 'lucide-react';
 
 export function App() {
   const [users, setUsers] = useState<User[]>([]);
@@ -78,6 +79,8 @@ export function App() {
   const [currentTab, setCurrentTab] = useState<NavTab>('users');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isTabLoading, setIsTabLoading] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
 
   // OTP Context for registration & recovery
@@ -186,10 +189,20 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    loadUsers();
-    loadClinics();
-    loadLeads();
-    loadAppointments();
+    const initApp = async () => {
+      try {
+        setIsInitialLoading(true);
+        await Promise.all([
+          loadUsers(),
+          loadClinics(),
+          loadLeads(),
+          loadAppointments(),
+        ]);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+    initApp();
   }, [loadUsers, loadClinics, loadLeads, loadAppointments]);
 
   // Current active user
@@ -223,6 +236,37 @@ export function App() {
       setCurrentTab('agendas');
     }
   }, [currentUser, currentTab]);
+
+  const handleSelectTab = (tab: NavTab) => {
+    if (tab === currentTab) return;
+    setIsTabLoading(true);
+    setCurrentTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      setIsTabLoading(false);
+    }, 240);
+  };
+
+  const getTabTitle = (tab: NavTab) => {
+    switch (tab) {
+      case 'overview':
+        return 'Visão Geral do CRM';
+      case 'users':
+        return 'Gestão de Usuários';
+      case 'clinics':
+        return currentUser?.role === 'ATENDENTE' ? 'Minha Carteira de Clientes' : 'Clínicas Médicas';
+      case 'portfolio':
+        return 'Gestão de Carteiras de Clientes';
+      case 'agendas':
+        return 'Gestão de Agendas dos Clientes';
+      case 'leads':
+        return 'Gestão de Leads & Prospecção';
+      case 'profile':
+        return 'Meus Dados';
+      default:
+        return 'Tela';
+    }
+  };
 
   // ---------------- AUTH HANDLERS ---------------- //
 
@@ -615,6 +659,28 @@ export function App() {
     }
   };
 
+  // ---------------- RENDER INITIAL APP LOADING ---------------- //
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 antialiased">
+        <div className="flex flex-col items-center gap-4 max-w-sm text-center">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white flex items-center justify-center font-bold text-2xl shadow-xl shadow-indigo-200">
+            <Layers className="w-8 h-8 animate-pulse" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-800 tracking-tight">
+              Duna<span className="text-indigo-600">CRM</span>
+            </h2>
+            <div className="flex items-center justify-center gap-2 mt-2 text-xs text-slate-500 font-medium">
+              <Loader2 className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
+              <span>Carregando plataforma e sincronizando dados...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ---------------- RENDER AUTH VIEWS ---------------- //
 
   if (!isAuthenticated || !currentUser) {
@@ -687,14 +753,14 @@ export function App() {
         onOpenCreateModal={() => setIsCreateModalOpen(true)}
         onToggleSidebarMobile={() => setIsMobileSidebarOpen(true)}
         onLogout={handleLogout}
-        onGoToProfile={() => setCurrentTab('profile')}
+        onGoToProfile={() => handleSelectTab('profile')}
       />
 
       {/* Main Container: Sidebar + Content */}
       <div className="flex-1 flex w-full max-w-7xl mx-auto">
         <Sidebar
           currentTab={currentTab}
-          onSelectTab={setCurrentTab}
+          onSelectTab={handleSelectTab}
           userRole={currentUser.role}
           isMobileOpen={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
@@ -706,19 +772,13 @@ export function App() {
             <div>
               <div className="flex items-center gap-2.5">
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
-                  {currentTab === 'overview' && 'Visão Geral do CRM'}
-                  {currentTab === 'users' && 'Gestão de Usuários'}
-                  {currentTab === 'clinics' &&
-                    (currentUser.role === 'ATENDENTE'
-                      ? 'Minha Carteira de Clientes'
-                      : 'Clínicas Médicas')}
-                  {currentTab === 'portfolio' && 'Gestão de Carteiras de Clientes'}
-                  {currentTab === 'agendas' && 'Gestão de Agendas dos Clientes'}
-                  {currentTab === 'leads' && 'Gestão de Leads & Prospecção'}
-                  {currentTab === 'profile' && 'Meus Dados'}
+                  {getTabTitle(currentTab)}
                 </h1>
-                {isLoading && (
-                  <RefreshCw className="w-4 h-4 text-slate-400 animate-spin" />
+                {(isLoading || isTabLoading) && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-semibold text-indigo-700 animate-pulse">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                    <span>Carregando...</span>
+                  </span>
                 )}
               </div>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
@@ -769,111 +829,122 @@ export function App() {
             )}
           </div>
 
-          {/* Conditional View by Tab */}
-          {currentTab === 'overview' && currentUser.role === 'ADMIN' && (
-            <Overview
-              users={users}
-              onOpenCreateModal={() => setIsCreateModalOpen(true)}
-              onGoToUsers={() => setCurrentTab('users')}
-              onViewUser={(user) => setSelectedUserForDetail(user)}
+          {/* Conditional View by Tab: Loading indicator during screen transition or active data fetch */}
+          {isTabLoading ? (
+            <ScreenLoading
+              title={`Carregando ${getTabTitle(currentTab)}...`}
+              subtitle="Sincronizando os dados mais recentes do DunaCRM."
             />
-          )}
+          ) : (
+            <>
+              {currentTab === 'overview' && currentUser.role === 'ADMIN' && (
+                <Overview
+                  users={users}
+                  onOpenCreateModal={() => setIsCreateModalOpen(true)}
+                  onGoToUsers={() => handleSelectTab('users')}
+                  onViewUser={(user) => setSelectedUserForDetail(user)}
+                />
+              )}
 
-          {currentTab === 'users' && currentUser.role === 'ADMIN' && (
-            <UserList
-              users={enrichedUsers}
-              currentUserId={currentUser.id}
-              onOpenCreateModal={() => setIsCreateModalOpen(true)}
-              onToggleStatus={handleToggleStatus}
-              onViewUser={(user) => setSelectedUserForDetail(user)}
-              onOpenEditModal={(user) => {
-                setSelectedUserForEdit(user);
-                setIsUserEditOpen(true);
-              }}
-              onOpenPortfolioModal={(user) => {
-                setSelectedUserForPortfolio(user);
-                setIsPortfolioModalOpen(true);
-              }}
-            />
-          )}
+              {currentTab === 'users' && currentUser.role === 'ADMIN' && (
+                <UserList
+                  users={enrichedUsers}
+                  currentUserId={currentUser.id}
+                  onOpenCreateModal={() => setIsCreateModalOpen(true)}
+                  onToggleStatus={handleToggleStatus}
+                  onViewUser={(user) => setSelectedUserForDetail(user)}
+                  onOpenEditModal={(user) => {
+                    setSelectedUserForEdit(user);
+                    setIsUserEditOpen(true);
+                  }}
+                  onOpenPortfolioModal={(user) => {
+                    setSelectedUserForPortfolio(user);
+                    setIsPortfolioModalOpen(true);
+                  }}
+                />
+              )}
 
-          {currentTab === 'clinics' &&
-            (currentUser.role === 'ADMIN' || currentUser.role === 'ATENDENTE') && (
-              <ClinicList
-                clinics={
-                  currentUser.role === 'ATENDENTE'
-                    ? clinics.filter(
-                        (c) =>
-                          isClinicContractActive(c.status, c.contractStatus, c.contractEndDate) &&
-                          (c.assignedAttendantId === currentUser.id ||
-                            currentUser.assignedClinicIds?.includes(c.id))
-                      )
-                    : clinics
-                }
-                isAdmin={currentUser.role === 'ADMIN'}
-                onOpenCreateModal={() => {
-                  if (currentUser.role !== 'ADMIN') return;
-                  setSelectedClinicForEdit(null);
-                  setIsClinicFormModalOpen(true);
-                }}
-                onOpenEditModal={(c) => {
-                  if (currentUser.role !== 'ADMIN') return;
-                  setSelectedClinicForEdit(c);
-                  setIsClinicFormModalOpen(true);
-                }}
-                onViewClinic={(c) => setSelectedClinicForDetail(c)}
-                onToggleStatus={handleToggleClinicStatus}
-              />
-            )}
+              {currentTab === 'clinics' &&
+                (currentUser.role === 'ADMIN' || currentUser.role === 'ATENDENTE') && (
+                  <ClinicList
+                    clinics={
+                      currentUser.role === 'ATENDENTE'
+                        ? clinics.filter(
+                            (c) =>
+                              isClinicContractActive(c.status, c.contractStatus, c.contractEndDate) &&
+                              (c.assignedAttendantId === currentUser.id ||
+                                currentUser.assignedClinicIds?.includes(c.id))
+                          )
+                        : clinics
+                    }
+                    isAdmin={currentUser.role === 'ADMIN'}
+                    onOpenCreateModal={() => {
+                      if (currentUser.role !== 'ADMIN') return;
+                      setSelectedClinicForEdit(null);
+                      setIsClinicFormModalOpen(true);
+                    }}
+                    onOpenEditModal={(c) => {
+                      if (currentUser.role !== 'ADMIN') return;
+                      setSelectedClinicForEdit(c);
+                      setIsClinicFormModalOpen(true);
+                    }}
+                    onViewClinic={(c) => setSelectedClinicForDetail(c)}
+                    onToggleStatus={handleToggleClinicStatus}
+                  />
+                )}
 
-          {currentTab === 'portfolio' && currentUser.role === 'ADMIN' && (
-            <PortfolioManager
-              users={enrichedUsers}
-              clinics={clinics}
-              onOpenPortfolioModal={(attendant) => {
-                setSelectedUserForPortfolio(attendant);
-                setIsPortfolioModalOpen(true);
-              }}
-              onGoToUsers={() => setCurrentTab('users')}
-              onGoToSchedule={() => setCurrentTab('agendas')}
-              onRefresh={async () => {
-                await loadUsers();
-                await loadClinics();
-              }}
-            />
-          )}
+              {currentTab === 'portfolio' && currentUser.role === 'ADMIN' && (
+                <PortfolioManager
+                  users={enrichedUsers}
+                  clinics={clinics}
+                  onOpenPortfolioModal={(attendant) => {
+                    setSelectedUserForPortfolio(attendant);
+                    setIsPortfolioModalOpen(true);
+                  }}
+                  onGoToUsers={() => handleSelectTab('users')}
+                  onGoToSchedule={() => handleSelectTab('agendas')}
+                  onRefresh={async () => {
+                    setIsTabLoading(true);
+                    await loadUsers();
+                    await loadClinics();
+                    setIsTabLoading(false);
+                  }}
+                />
+              )}
 
-          {currentTab === 'agendas' &&
-            (currentUser.role === 'ADMIN' || currentUser.role === 'ATENDENTE') && (
-              <ScheduleManager
-                currentUser={currentUser}
-                appointments={appointments}
-                clinics={clinics}
-                onCreateAppointment={handleCreateAppointment}
-                onUpdateStatus={handleUpdateAppointmentStatus}
-                onDeleteAppointment={handleDeleteAppointment}
-              />
-            )}
+              {currentTab === 'agendas' &&
+                (currentUser.role === 'ADMIN' || currentUser.role === 'ATENDENTE') && (
+                  <ScheduleManager
+                    currentUser={currentUser}
+                    appointments={appointments}
+                    clinics={clinics}
+                    onCreateAppointment={handleCreateAppointment}
+                    onUpdateStatus={handleUpdateAppointmentStatus}
+                    onDeleteAppointment={handleDeleteAppointment}
+                  />
+                )}
 
-          {currentTab === 'leads' && currentUser.role === 'ADMIN' && (
-            <LeadList
-              leads={leads}
-              onOpenCreateModal={() => {
-                setSelectedLeadForEdit(null);
-                setIsLeadFormModalOpen(true);
-              }}
-              onOpenEditModal={(l) => {
-                setSelectedLeadForEdit(l);
-                setIsLeadFormModalOpen(true);
-              }}
-              onViewLead={(l) => setSelectedLeadForDetail(l)}
-              onDeleteLead={handleDeleteLead}
-              onUpdateStatus={handleUpdateLeadStatus}
-            />
-          )}
+              {currentTab === 'leads' && currentUser.role === 'ADMIN' && (
+                <LeadList
+                  leads={leads}
+                  onOpenCreateModal={() => {
+                    setSelectedLeadForEdit(null);
+                    setIsLeadFormModalOpen(true);
+                  }}
+                  onOpenEditModal={(l) => {
+                    setSelectedLeadForEdit(l);
+                    setIsLeadFormModalOpen(true);
+                  }}
+                  onViewLead={(l) => setSelectedLeadForDetail(l)}
+                  onDeleteLead={handleDeleteLead}
+                  onUpdateStatus={handleUpdateLeadStatus}
+                />
+              )}
 
-          {currentTab === 'profile' && (
-            <MyProfile currentUser={currentUser} onUpdateProfile={handleUpdateProfile} />
+              {currentTab === 'profile' && (
+                <MyProfile currentUser={currentUser} onUpdateProfile={handleUpdateProfile} />
+              )}
+            </>
           )}
         </main>
       </div>
