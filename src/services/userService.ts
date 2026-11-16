@@ -47,15 +47,136 @@ export async function updateUserPresence(userId: string): Promise<void> {
 /**
  * Checks whether a user is currently considered online
  * - Current user is always online
- * - Other active users are considered online if their last_seen_at is within the last 5 minutes
+ * - Real-time presence set checked first (instant via WebSockets)
+ * - Fallback to last_seen_at timestamp within the last 3 minutes
  */
-export function isUserOnline(user: User, currentUserId?: string): boolean {
+export function isUserOnline(
+  user: User,
+  currentUserId?: string,
+  onlineUserIds?: Set<string> | string[]
+): boolean {
   if (user.status !== 'ATIVO') return false;
   if (currentUserId && user.id === currentUserId) return true;
+  if (onlineUserIds) {
+    if (onlineUserIds instanceof Set) {
+      if (onlineUserIds.has(user.id)) return true;
+    } else if (Array.isArray(onlineUserIds)) {
+      if (onlineUserIds.includes(user.id)) return true;
+    }
+  }
+  if (user.isOnline === true) return true;
   if (!user.lastSeenAt) return false;
   const lastSeenMs = new Date(user.lastSeenAt).getTime();
   const diffMs = Date.now() - lastSeenMs;
-  return diffMs <= 5 * 60 * 1000;
+  return diffMs <= 3 * 60 * 1000;
+}
+
+/**
+ * Subscribes to real-time online presence via Supabase Realtime Channels.
+ * When any user joins or leaves the platform, the callback is immediately triggered
+ * without needing any page reload.
+ */
+export function subscribeToOnlinePresence(
+  currentUserId: string,
+  userName: string,
+  onPresenceChange: (onlineIds: Set<string>) => void
+): () => void {
+  if (!currentUserId) return () => {};
+
+  const channel = supabase.channel('duna_crm_presence', {
+    config: {
+      presence: {
+        key: currentUserId,
+      },
+    },
+  });
+
+  const extractAndNotify = () => {
+    const presenceState = channel.presenceState();
+    const ids = new Set<string>();
+    Object.keys(presenceState).forEach((key) => {
+      ids.add(key);
+      const items = presenceState[key] as any[];
+      if (Array.isArray(items)) {
+        items.forEach((item) => {
+          if (item?.userId) ids.add(item.userId);
+        });
+      }
+    });
+    // Ensure current user is included
+    ids.add(currentUserId);
+    onPresenceChange(ids);
+  };
+
+  channel
+    .on('presence', { event: 'sync' }, () => {
+      extractAndNotify();
+    })
+    .on('presence', { event: 'join' }, () => {
+      extractAndNotify();
+    })
+    .on('presence', { event: 'leave' }, () => {
+      extractAndNotify();
+    })
+    .subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        try {
+          await channel.track({
+            userId: currentUserId,
+            name: userName,
+            onlineAt: new Date().toISOString(),
+          });
+        } catch (err) {
+          console.warn('Erro ao registrar presença no canal:', err);
+        }
+      }
+    });
+
+  const handleBeforeUnload = () => {
+    try {
+      channel.untrack();
+    } catch {}
+  };
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
+  return () => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+    try {
+      channel.untrack();
+      supabase.removeChannel(channel);
+    } catch {}
+  };
+}
+
+/**
+ * Subscribes to real-time database changes on crm_users via Supabase Realtime Postgres Changes.
+ */
+export function subscribeToUserChanges(
+  onUserChanged: (updatedUser: User, eventType: string) => void
+): () => void {
+  const channel = supabase
+    .channel('crm_users_db_changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'crm_users',
+      },
+      (payload) => {
+        if (payload.new && (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT')) {
+          const mapped = mapDbToUser(payload.new);
+          onUserChanged(mapped, payload.eventType);
+        } else if (payload.old && payload.eventType === 'DELETE') {
+          onUserChanged({ id: payload.old.id } as User, payload.eventType);
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }
 
 /**

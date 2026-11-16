@@ -15,6 +15,9 @@ import {
   updateSupabaseUserSelf,
   updateSupabaseUserByAdmin,
   updateUserPresence,
+  subscribeToOnlinePresence,
+  subscribeToUserChanges,
+  isUserOnline,
   getCurrentUserId,
   clearCurrentSession,
 } from './services/userService';
@@ -72,6 +75,7 @@ import { Building2, Target, Loader2, Layers } from 'lucide-react';
 
 export function App() {
   const [users, setUsers] = useState<User[]>([]);
+  const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [clinics, setClinics] = useState<MedicalClinic[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [currentUserIdState, setCurrentUserIdState] = useState<string>('');
@@ -199,20 +203,49 @@ export function App() {
     }
   }, []);
 
-  // Heartbeat presence update (every 45s)
+  // Current active user
+  const currentUser = users.find((u) => u.id === currentUserIdState);
+
+  // Real-time presence & user database sync (Zero page reload required)
   useEffect(() => {
-    if (!isAuthenticated || !currentUserIdState) return;
+    if (!isAuthenticated || !currentUser) return;
 
-    // Send immediate presence update
-    updateUserPresence(currentUserIdState);
+    // 1. Subscribe to Realtime Presence Channel (instant join/leave events across all clients)
+    const unsubscribePresence = subscribeToOnlinePresence(
+      currentUser.id,
+      currentUser.name,
+      (ids) => {
+        setOnlineUserIds(ids);
+      }
+    );
 
+    // 2. Subscribe to Realtime Database Changes (instant updates without reload)
+    const unsubscribeDb = subscribeToUserChanges((changedUser, eventType) => {
+      setUsers((prev) => {
+        if (eventType === 'DELETE') {
+          return prev.filter((u) => u.id !== changedUser.id);
+        }
+        if (eventType === 'INSERT') {
+          if (prev.some((u) => u.id === changedUser.id)) return prev;
+          return [changedUser, ...prev];
+        }
+        return prev.map((u) => (u.id === changedUser.id ? { ...u, ...changedUser } : u));
+      });
+    });
+
+    // 3. Periodic heartbeat for database persistence (every 45s)
+    updateUserPresence(currentUser.id);
     const interval = setInterval(() => {
-      updateUserPresence(currentUserIdState);
+      updateUserPresence(currentUser.id);
       refreshUsersSilently();
     }, 45000);
 
-    return () => clearInterval(interval);
-  }, [isAuthenticated, currentUserIdState, refreshUsersSilently]);
+    return () => {
+      clearInterval(interval);
+      unsubscribePresence();
+      unsubscribeDb();
+    };
+  }, [isAuthenticated, currentUser?.id, currentUser?.name, refreshUsersSilently]);
 
   useEffect(() => {
     const initApp = async () => {
@@ -231,21 +264,25 @@ export function App() {
     initApp();
   }, [loadUsers, loadClinics, loadLeads, loadAppointments]);
 
-  // Current active user
-  const currentUser = users.find((u) => u.id === currentUserIdState);
-
-  // Enriched users with dynamically calculated active contract portfolio count
+  // Enriched users with dynamically calculated active contract portfolio count & instant presence
   const enrichedUsers = useMemo(() => {
     return users.map((u) => {
-      if (u.role !== 'ATENDENTE') return u;
-      const activeCount = clinics.filter(
-        (c) =>
-          isClinicContractActive(c.status, c.contractStatus, c.contractEndDate) &&
-          (c.assignedAttendantId === u.id || u.assignedClinicIds?.includes(c.id))
-      ).length;
-      return { ...u, assignedClinicsCount: activeCount };
+      const isOnline = isUserOnline(u, currentUserIdState, onlineUserIds);
+      let assignedClinicsCount = u.assignedClinicsCount;
+      if (u.role === 'ATENDENTE') {
+        assignedClinicsCount = clinics.filter(
+          (c) =>
+            isClinicContractActive(c.status, c.contractStatus, c.contractEndDate) &&
+            (c.assignedAttendantId === u.id || u.assignedClinicIds?.includes(c.id))
+        ).length;
+      }
+      return {
+        ...u,
+        isOnline,
+        assignedClinicsCount,
+      };
     });
-  }, [users, clinics]);
+  }, [users, clinics, currentUserIdState, onlineUserIds]);
 
   // STRICT ACCESS CONTROL:
   // - ADMIN has access to all tabs
@@ -867,6 +904,7 @@ export function App() {
                 <Overview
                   users={enrichedUsers}
                   currentUserId={currentUser.id}
+                  onlineUserIds={onlineUserIds}
                   onOpenCreateModal={() => setIsCreateModalOpen(true)}
                   onGoToUsers={() => handleSelectTab('users')}
                   onViewUser={(user) => setSelectedUserForDetail(user)}
@@ -877,6 +915,7 @@ export function App() {
                 <UserList
                   users={enrichedUsers}
                   currentUserId={currentUser.id}
+                  onlineUserIds={onlineUserIds}
                   onOpenCreateModal={() => setIsCreateModalOpen(true)}
                   onToggleStatus={handleToggleStatus}
                   onViewUser={(user) => setSelectedUserForDetail(user)}
@@ -1029,6 +1068,7 @@ export function App() {
       <UserDetailModal
         user={selectedUserForDetail}
         currentUserId={currentUser?.id}
+        onlineUserIds={onlineUserIds}
         isOpen={!!selectedUserForDetail}
         onClose={() => setSelectedUserForDetail(null)}
         onOpenEditModal={(u) => {

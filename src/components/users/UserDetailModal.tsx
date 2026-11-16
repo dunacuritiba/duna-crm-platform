@@ -19,6 +19,7 @@ import {
 interface UserDetailModalProps {
   user: User | null;
   currentUserId?: string;
+  onlineUserIds?: Set<string>;
   isOpen: boolean;
   onClose: () => void;
   onOpenEditModal?: (user: User) => void;
@@ -28,6 +29,7 @@ interface UserDetailModalProps {
 export const UserDetailModal: React.FC<UserDetailModalProps> = ({
   user,
   currentUserId,
+  onlineUserIds,
   isOpen,
   onClose,
   onOpenEditModal,
@@ -36,7 +38,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
   if (!user) return null;
 
   const age = calculateAge(user.birthDate);
-  const online = isUserOnline(user, currentUserId);
+  const online = isUserOnline(user, currentUserId, onlineUserIds);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Detalhes do Usuário" subtitle={`ID: ${user.id}`}>

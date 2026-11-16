@@ -17,6 +17,7 @@ import {
 interface UserListProps {
   users: User[];
   currentUserId: string;
+  onlineUserIds?: Set<string>;
   onOpenCreateModal: () => void;
   onToggleStatus: (userId: string) => void;
   onViewUser: (user: User) => void;
@@ -27,6 +28,7 @@ interface UserListProps {
 export const UserList: React.FC<UserListProps> = ({
   users,
   currentUserId,
+  onlineUserIds,
   onOpenCreateModal,
   onToggleStatus,
   onViewUser,
@@ -49,12 +51,12 @@ export const UserList: React.FC<UserListProps> = ({
         statusFilter === 'ALL'
           ? true
           : statusFilter === 'ONLINE'
-          ? isUserOnline(u, currentUserId)
+          ? isUserOnline(u, currentUserId, onlineUserIds)
           : u.status === statusFilter;
 
       return matchSearch && matchRole && matchStatus;
     });
-  }, [users, search, roleFilter, statusFilter, currentUserId]);
+  }, [users, search, roleFilter, statusFilter, currentUserId, onlineUserIds]);
 
   return (
     <div className="space-y-6">
@@ -112,9 +114,9 @@ export const UserList: React.FC<UserListProps> = ({
             <span
               className={`w-2 h-2 rounded-full ${
                 statusFilter === 'ONLINE' ? 'bg-white' : 'bg-emerald-500'
-              } ${users.some((u) => isUserOnline(u, currentUserId)) ? 'animate-pulse' : ''}`}
+              } ${users.some((u) => isUserOnline(u, currentUserId, onlineUserIds)) ? 'animate-pulse' : ''}`}
             />
-            Online ({users.filter((u) => isUserOnline(u, currentUserId)).length})
+            Online ({users.filter((u) => isUserOnline(u, currentUserId, onlineUserIds)).length})
           </button>
           <button
             onClick={() => setStatusFilter('ATIVO')}
@@ -205,7 +207,7 @@ export const UserList: React.FC<UserListProps> = ({
               ) : (
                 filteredUsers.map((user) => {
                   const isCurrent = user.id === currentUserId;
-                  const online = isUserOnline(user, currentUserId);
+                  const online = isUserOnline(user, currentUserId, onlineUserIds);
 
                   return (
                     <tr
@@ -347,7 +349,7 @@ export const UserList: React.FC<UserListProps> = ({
         ) : (
           filteredUsers.map((user) => {
             const isCurrent = user.id === currentUserId;
-            const online = isUserOnline(user, currentUserId);
+            const online = isUserOnline(user, currentUserId, onlineUserIds);
 
             return (
               <div

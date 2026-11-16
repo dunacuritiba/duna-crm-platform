@@ -18,6 +18,7 @@ import {
 interface OverviewProps {
   users: User[];
   currentUserId?: string;
+  onlineUserIds?: Set<string>;
   onOpenCreateModal: () => void;
   onGoToUsers: () => void;
   onViewUser: (user: User) => void;
@@ -26,12 +27,13 @@ interface OverviewProps {
 export const Overview: React.FC<OverviewProps> = ({
   users,
   currentUserId,
+  onlineUserIds,
   onOpenCreateModal,
   onGoToUsers,
   onViewUser,
 }) => {
   const total = users.length;
-  const onlineCount = users.filter((u) => isUserOnline(u, currentUserId)).length;
+  const onlineCount = users.filter((u) => isUserOnline(u, currentUserId, onlineUserIds)).length;
   const activeCount = users.filter((u) => u.status === 'ATIVO').length;
   const inactiveCount = users.filter((u) => u.status === 'INATIVO').length;
   const standardUsersCount = users.filter((u) => u.role === 'USUARIO').length;
@@ -177,7 +179,7 @@ export const Overview: React.FC<OverviewProps> = ({
 
           <div className="divide-y divide-slate-100">
             {recentUsers.map((user) => {
-              const online = isUserOnline(user, currentUserId);
+              const online = isUserOnline(user, currentUserId, onlineUserIds);
               return (
                 <div
                   key={user.id}
