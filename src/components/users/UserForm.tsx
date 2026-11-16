@@ -152,6 +152,7 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
             </div>
             <input
               id="user-name"
+              name="name"
               type="text"
               required
               placeholder="Ex: Ana Clara Rodrigues"
@@ -186,6 +187,7 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
             </div>
             <input
               id="user-cpf"
+              name="cpf"
               type="text"
               required
               maxLength={14}
@@ -227,6 +229,7 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
             </div>
             <input
               id="user-birthdate"
+              name="birthDate"
               type="date"
               required
               max={new Date().toISOString().split('T')[0]}
@@ -268,6 +271,7 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
             </div>
             <input
               id="user-email"
+              name="email"
               type="email"
               required
               autoComplete="email"
@@ -300,6 +304,7 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
           </label>
           <select
             id="user-dept"
+            name="department"
             value={formData.department}
             onChange={(e) => handleChange('department', e.target.value)}
             className="w-full px-3.5 py-2.5 bg-white text-slate-800 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"

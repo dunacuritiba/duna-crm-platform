@@ -94,6 +94,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, isLoa
             </div>
             <input
               id="login-email"
+              name="email"
               type="email"
               required
               autoComplete="username"
@@ -129,6 +130,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, isLoa
             </div>
             <input
               id="login-password"
+              name="password"
               type={showPassword ? 'text' : 'password'}
               required
               autoComplete="current-password"

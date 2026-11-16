@@ -97,6 +97,7 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
             </div>
             <input
               id="reset-otp-input"
+              name="code"
               type="text"
               inputMode="numeric"
               maxLength={6}
@@ -126,6 +127,7 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
             </div>
             <input
               id="new-pass-input"
+              name="newPassword"
               type={showPassword ? 'text' : 'password'}
               required
               autoComplete="new-password"
@@ -158,6 +160,7 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
             </div>
             <input
               id="confirm-new-pass-input"
+              name="confirmPassword"
               type={showPassword ? 'text' : 'password'}
               required
               autoComplete="new-password"

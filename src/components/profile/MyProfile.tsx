@@ -132,6 +132,8 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
                     <UserIcon className="w-4 h-4" />
                   </div>
                   <input
+                    id="profile-name"
+                    name="name"
                     type="text"
                     disabled={isStandardUser}
                     value={isStandardUser ? currentUser.name : name}
@@ -158,7 +160,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
               {/* Documento (CPF) - LOCKED */}
               <div>
                 <div className="h-5 flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  <label htmlFor="profile-cpf" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     Documento (CPF)
                   </label>
                   <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
@@ -170,6 +172,8 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
                     <CreditCard className="w-4 h-4" />
                   </div>
                   <input
+                    id="profile-cpf"
+                    name="cpf"
                     type="text"
                     disabled
                     readOnly
@@ -188,7 +192,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
               {/* Data de Nascimento - LOCKED per requirement */}
               <div>
                 <div className="h-5 flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  <label htmlFor="profile-birthdate" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     Data de Nascimento
                   </label>
                   <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
@@ -200,6 +204,8 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
                     <Calendar className="w-4 h-4" />
                   </div>
                   <input
+                    id="profile-birthdate"
+                    name="birthDate"
                     type="text"
                     disabled
                     readOnly
@@ -220,7 +226,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
               {/* E-mail de Acesso - LOCKED per requirement */}
               <div>
                 <div className="h-5 flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  <label htmlFor="profile-email" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     E-mail de Acesso
                   </label>
                   <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
@@ -232,6 +238,8 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
                     <Mail className="w-4 h-4" />
                   </div>
                   <input
+                    id="profile-email"
+                    name="email"
                     type="email"
                     disabled
                     readOnly
@@ -250,7 +258,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
               {/* Telefone de Contato (EDITABLE) */}
               <div>
                 <div className="h-5 flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  <label htmlFor="profile-phone" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     Telefone / WhatsApp (Opcional)
                   </label>
                 </div>
@@ -259,6 +267,8 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
                     <Phone className="w-4 h-4" />
                   </div>
                   <input
+                    id="profile-phone"
+                    name="phone"
                     type="text"
                     placeholder="(00) 00000-0000"
                     value={phone}

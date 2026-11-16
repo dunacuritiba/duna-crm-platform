@@ -211,10 +211,12 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="member-crm" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                   CRM do Médico <span className="text-rose-500 ml-0.5">*</span>
                 </label>
                 <input
+                  id="member-crm"
+                  name="crm"
                   type="text"
                   required
                   value={crm}
@@ -225,10 +227,12 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
               </div>
 
               <div>
-                <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="member-specialty" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                   Especialidade Médica
                 </label>
                 <input
+                  id="member-specialty"
+                  name="specialty"
                   type="text"
                   value={specialty}
                   onChange={(e) => setSpecialty(e.target.value)}
@@ -283,11 +287,13 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
         {/* Common Personal Information */}
         <div className="space-y-3.5">
           <div>
-            <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+            <label htmlFor="member-name" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
               <UserIcon className="w-3.5 h-3.5 text-slate-400" />
               Nome Completo <span className="text-rose-500 ml-0.5">*</span>
             </label>
             <input
+              id="member-name"
+              name="name"
               type="text"
               required
               value={name}
@@ -299,11 +305,13 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="member-email" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
                 E-mail Institucional <span className="text-rose-500 ml-0.5">*</span>
               </label>
               <input
+                id="member-email"
+                name="email"
                 type="email"
                 required
                 value={email}
@@ -314,11 +322,13 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="member-phone" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Phone className="w-3.5 h-3.5 text-slate-400" />
                 Telefone / WhatsApp
               </label>
               <input
+                id="member-phone"
+                name="phone"
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(formatPhone(e.target.value))}
@@ -330,11 +340,13 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="member-cpf" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <CreditCard className="w-3.5 h-3.5 text-slate-400" />
                 CPF (Opcional)
               </label>
               <input
+                id="member-cpf"
+                name="cpf"
                 type="text"
                 value={cpf}
                 onChange={(e) => setCpf(formatCPF(e.target.value))}
@@ -345,10 +357,12 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="member-status" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                 Status na Clínica
               </label>
               <select
+                id="member-status"
+                name="status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as 'ATIVO' | 'INATIVO')}
                 className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"

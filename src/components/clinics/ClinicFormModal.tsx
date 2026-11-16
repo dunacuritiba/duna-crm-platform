@@ -549,6 +549,8 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
 
               <div className="flex flex-col sm:flex-row items-stretch gap-2">
                 <input
+                  id="clinic-cnpj-input"
+                  name="cnpj"
                   type="text"
                   value={cnpj}
                   onChange={(e) => {
@@ -605,10 +607,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
             {/* Razão Social e Nome Fantasia */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="clinic-company-name" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                   Razão Social <span className="text-rose-500 ml-0.5">*</span>
                 </label>
                 <input
+                  id="clinic-company-name"
+                  name="companyName"
                   type="text"
                   required
                   value={companyName}
@@ -619,10 +623,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
               </div>
 
               <div>
-                <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="clinic-trade-name" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                   Nome Fantasia
                 </label>
                 <input
+                  id="clinic-trade-name"
+                  name="tradeName"
                   type="text"
                   value={tradeName}
                   onChange={(e) => setTradeName(e.target.value)}
@@ -641,10 +647,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="clinic-tech-crm" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                     CRM do Responsável Técnico <span className="text-rose-500 ml-0.5">*</span>
                   </label>
                   <input
+                    id="clinic-tech-crm"
+                    name="technicalResponsibleCrm"
                     type="text"
                     required
                     value={technicalResponsibleCrm}
@@ -655,10 +663,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="clinic-tech-name" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                     Nome do Médico Responsável
                   </label>
                   <input
+                    id="clinic-tech-name"
+                    name="technicalResponsibleName"
                     type="text"
                     value={technicalResponsibleName}
                     onChange={(e) => setTechnicalResponsibleName(e.target.value)}
@@ -703,6 +713,8 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
 
               <div className="flex items-center gap-2">
                 <input
+                  id="clinic-custom-specialty"
+                  name="customSpecialty"
                   type="text"
                   value={customSpecialty}
                   onChange={(e) => setCustomSpecialty(e.target.value)}
@@ -750,11 +762,13 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
             {/* Contato Central */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="clinic-phone" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                   <Phone className="w-3.5 h-3.5 text-slate-400" />
                   Telefone / WhatsApp Geral
                 </label>
                 <input
+                  id="clinic-phone"
+                  name="phone"
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(formatPhone(e.target.value))}
@@ -764,11 +778,13 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
               </div>
 
               <div>
-                <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="clinic-email" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                   <Mail className="w-3.5 h-3.5 text-slate-400" />
                   E-mail Institucional Geral
                 </label>
                 <input
+                  id="clinic-email"
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -854,10 +870,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                     <div className="sm:col-span-2">
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      <label htmlFor={`unit-name-${index}`} className="block text-[11px] font-semibold text-slate-600 mb-1">
                         Nome da Unidade / Filial <span className="text-rose-500">*</span>
                       </label>
                       <input
+                        id={`unit-name-${index}`}
+                        name={`unit_name_${index}`}
                         type="text"
                         required
                         value={unit.name}
@@ -868,10 +886,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      <label htmlFor={`unit-phone-${index}`} className="block text-[11px] font-semibold text-slate-600 mb-1">
                         Telefone da Unidade
                       </label>
                       <input
+                        id={`unit-phone-${index}`}
+                        name={`unit_phone_${index}`}
                         type="text"
                         value={unit.phone || ''}
                         onChange={(e) =>
@@ -888,7 +908,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                     {/* Linha 1: CEP (1 col) + Logradouro (2 cols) */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="h-5 flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
+                        <label htmlFor={`unit-zip-${index}`} className="h-5 flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
                           <span>CEP</span>
                           {isLoadingUnitCep === index && (
                             <span className="text-[10px] text-indigo-600 flex items-center gap-1 font-normal">
@@ -897,6 +917,8 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                           )}
                         </label>
                         <input
+                          id={`unit-zip-${index}`}
+                          name={`unit_zip_${index}`}
                           type="text"
                           value={unit.zipCode || ''}
                           onChange={(e) => {
@@ -913,10 +935,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                       </div>
 
                       <div className="sm:col-span-2">
-                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
+                        <label htmlFor={`unit-street-${index}`} className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
                           Logradouro (Rua, Avenida...)
                         </label>
                         <input
+                          id={`unit-street-${index}`}
+                          name={`unit_street_${index}`}
                           type="text"
                           value={unit.street || ''}
                           onChange={(e) => handleUpdateUnit(index, 'street', e.target.value)}
@@ -929,10 +953,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                     {/* Linha 2: Número (1 col) + Complemento (1 col) + Bairro (1 col) */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
+                        <label htmlFor={`unit-number-${index}`} className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
                           Número
                         </label>
                         <input
+                          id={`unit-number-${index}`}
+                          name={`unit_number_${index}`}
                           type="text"
                           value={unit.number || ''}
                           onChange={(e) => handleUpdateUnit(index, 'number', e.target.value)}
@@ -941,11 +967,13 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                         />
                       </div>
 
-                      <div>
-                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
+                    <div>
+                        <label htmlFor={`unit-complement-${index}`} className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
                           Complemento
                         </label>
                         <input
+                          id={`unit-complement-${index}`}
+                          name={`unit_complement_${index}`}
                           type="text"
                           value={unit.complement || ''}
                           onChange={(e) => handleUpdateUnit(index, 'complement', e.target.value)}
@@ -955,10 +983,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                       </div>
 
                       <div>
-                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
+                        <label htmlFor={`unit-neighborhood-${index}`} className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
                           Bairro
                         </label>
                         <input
+                          id={`unit-neighborhood-${index}`}
+                          name={`unit_neighborhood_${index}`}
                           type="text"
                           value={unit.neighborhood || ''}
                           onChange={(e) => handleUpdateUnit(index, 'neighborhood', e.target.value)}
@@ -971,10 +1001,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                     {/* Linha 3: Cidade (2 cols) + Estado/UF (1 col) */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="sm:col-span-2">
-                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
+                        <label htmlFor={`unit-city-${index}`} className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
                           Cidade
                         </label>
                         <input
+                          id={`unit-city-${index}`}
+                          name={`unit_city_${index}`}
                           type="text"
                           value={unit.city || ''}
                           onChange={(e) => handleUpdateUnit(index, 'city', e.target.value)}
@@ -984,10 +1016,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                       </div>
 
                       <div>
-                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
+                        <label htmlFor={`unit-state-${index}`} className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
                           Estado (UF)
                         </label>
                         <input
+                          id={`unit-state-${index}`}
+                          name={`unit_state_${index}`}
                           type="text"
                           value={unit.state || ''}
                           onChange={(e) =>
@@ -1089,10 +1123,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="clinic-contract-start" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                     Data de Início da Vigência
                   </label>
                   <input
+                    id="clinic-contract-start"
+                    name="contractStartDate"
                     type="date"
                     value={contractStartDate}
                     onChange={(e) => setContractStartDate(e.target.value)}
@@ -1101,13 +1137,15 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="h-5 flex items-center justify-between text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="clinic-contract-end" className="h-5 flex items-center justify-between text-xs font-semibold text-slate-700 mb-1">
                     <span>Data Final de Vigência (Vencimento)</span>
                     <span className="text-[10px] text-indigo-600 font-normal">
                       atualiza status auto
                     </span>
                   </label>
                   <input
+                    id="clinic-contract-end"
+                    name="contractEndDate"
                     type="date"
                     value={contractEndDate}
                     onChange={(e) => handleEndDateChange(e.target.value)}
@@ -1119,11 +1157,13 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
 
             {/* Contract Notes */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+              <label htmlFor="clinic-contract-notes" className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
                 <FileText className="w-3.5 h-3.5 text-slate-400" />
                 Observações de Contrato & Negociação
               </label>
               <textarea
+                id="clinic-contract-notes"
+                name="contractNotes"
                 value={contractNotes}
                 onChange={(e) => setContractNotes(e.target.value)}
                 rows={3}
@@ -1134,11 +1174,13 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
 
             {/* Assigned Attendant Selector */}
             <div className="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl space-y-2">
-              <label className="block text-xs font-bold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+              <label htmlFor="clinic-assigned-attendant" className="block text-xs font-bold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
                 <Headphones className="w-4 h-4 text-amber-600" />
                 Atendente Responsável pela Carteira
               </label>
               <select
+                id="clinic-assigned-attendant"
+                name="assignedAttendantId"
                 value={assignedAttendantId}
                 onChange={(e) => setAssignedAttendantId(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
@@ -1164,8 +1206,9 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
             <span className="text-xs font-semibold text-slate-700">Acesso à Plataforma CRM</span>
           </div>
           <div className="flex items-center gap-3">
-            <label className="inline-flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+            <label htmlFor="clinic-status-active" className="inline-flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
               <input
+                id="clinic-status-active"
                 type="radio"
                 name="clinic_global_status"
                 value="ATIVO"
@@ -1175,8 +1218,9 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
               />
               Ativa
             </label>
-            <label className="inline-flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+            <label htmlFor="clinic-status-inactive" className="inline-flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
               <input
+                id="clinic-status-inactive"
                 type="radio"
                 name="clinic_global_status"
                 value="INATIVO"

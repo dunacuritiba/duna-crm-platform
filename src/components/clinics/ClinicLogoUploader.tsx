@@ -58,6 +58,8 @@ export const ClinicLogoUploader: React.FC<ClinicLogoUploaderProps> = ({
   return (
     <div className="space-y-2">
       <input
+        id="clinic-logo-file-input"
+        name="logoFile"
         type="file"
         ref={fileInputRef}
         onChange={handleFileSelect}

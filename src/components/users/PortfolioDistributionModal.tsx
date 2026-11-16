@@ -216,6 +216,8 @@ export const PortfolioDistributionModal: React.FC<PortfolioDistributionModalProp
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
+              id="portfolio-search-clinics"
+              name="search"
               type="text"
               placeholder="Buscar clínica por nome, CNPJ ou cidade..."
               value={search}

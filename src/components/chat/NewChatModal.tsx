@@ -82,6 +82,8 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
+                id="new-chat-user-search"
+                name="search"
                 type="text"
                 placeholder="Buscar usuário por nome ou e-mail..."
                 value={search}
@@ -150,7 +152,7 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
         ) : (
           <form onSubmit={handleCreateGroup} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label htmlFor="new-chat-group-name" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                 Nome do Canal *
               </label>
               <div className="relative">
@@ -158,6 +160,8 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
                   #
                 </span>
                 <input
+                  id="new-chat-group-name"
+                  name="groupName"
                   type="text"
                   required
                   placeholder="ex: Suporte-Clinicas, Equipe-Plantao..."
@@ -169,10 +173,12 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label htmlFor="new-chat-dept-select" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                 Departamento Vinculado
               </label>
               <select
+                id="new-chat-dept-select"
+                name="department"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:bg-white transition"

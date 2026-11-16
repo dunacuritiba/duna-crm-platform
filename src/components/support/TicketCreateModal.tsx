@@ -107,10 +107,12 @@ export const TicketCreateModal: React.FC<TicketCreateModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Title */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+          <label htmlFor="ticket-title" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
             Título do Chamado *
           </label>
           <input
+            id="ticket-title"
+            name="title"
             type="text"
             required
             placeholder="Ex: Erro ao sincronizar contrato da Clínica São Lucas..."
@@ -183,10 +185,12 @@ export const TicketCreateModal: React.FC<TicketCreateModalProps> = ({
 
         {/* Description with @ MentionInput */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+          <label htmlFor="ticket-description" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
             Descrição Detalhada (Use @ para marcar colegas) *
           </label>
           <MentionInput
+            id="ticket-description"
+            name="description"
             value={description}
             onChange={setDescription}
             onMention={handleMention}
@@ -230,6 +234,8 @@ export const TicketCreateModal: React.FC<TicketCreateModalProps> = ({
                 #
               </span>
               <input
+                id="ticket-custom-tag"
+                name="customTag"
                 type="text"
                 placeholder="Nova tag..."
                 value={customTagInput}
@@ -250,11 +256,13 @@ export const TicketCreateModal: React.FC<TicketCreateModalProps> = ({
 
         {/* Assign To (Optional) */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <label htmlFor="ticket-assigned-to" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
             <UserCheck className="w-3.5 h-3.5 text-slate-500" />
             Atribuir Responsável (Opcional)
           </label>
           <select
+            id="ticket-assigned-to"
+            name="assignedToId"
             value={assignedToId}
             onChange={(e) => setAssignedToId(e.target.value)}
             className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:bg-white transition"

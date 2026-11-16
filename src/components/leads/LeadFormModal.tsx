@@ -195,10 +195,12 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="sm:col-span-2">
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-name" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                 Nome do Lead / Clínica <span className="text-rose-500 ml-0.5">*</span>
               </label>
               <input
+                id="lead-name"
+                name="name"
                 type="text"
                 required
                 value={name}
@@ -209,10 +211,12 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-type" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                 Tipo de Estabelecimento
               </label>
               <select
+                id="lead-type"
+                name="leadType"
                 value={leadType}
                 onChange={(e) => setLeadType(e.target.value as LeadType)}
                 className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
@@ -226,11 +230,13 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-cnpj" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                 CNPJ (Opcional na fase de lead)
               </label>
               <div className="flex gap-2">
                 <input
+                  id="lead-cnpj"
+                  name="cnpj"
                   type="text"
                   value={cnpj}
                   onChange={(e) => {
@@ -268,8 +274,10 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div className="sm:col-span-2">
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">Cidade</label>
+              <label htmlFor="lead-city" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">Cidade</label>
               <input
+                id="lead-city"
+                name="city"
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
@@ -278,8 +286,10 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
               />
             </div>
             <div>
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">Estado (UF)</label>
+              <label htmlFor="lead-state" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">Estado (UF)</label>
               <input
+                id="lead-state"
+                name="state"
                 type="text"
                 value={state}
                 onChange={(e) => setState(e.target.value.toUpperCase())}
@@ -300,10 +310,12 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-contact-name" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                 Nome do Responsável
               </label>
               <input
+                id="lead-contact-name"
+                name="contactName"
                 type="text"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
@@ -313,10 +325,12 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-contact-role" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                 Cargo / Função
               </label>
               <input
+                id="lead-contact-role"
+                name="contactRole"
                 type="text"
                 value={contactRole}
                 onChange={(e) => setContactRole(e.target.value)}
@@ -326,11 +340,13 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-phone" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Phone className="w-3.5 h-3.5 text-slate-400" />
                 Telefone / WhatsApp
               </label>
               <input
+                id="lead-phone"
+                name="phone"
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(formatPhone(e.target.value))}
@@ -340,11 +356,13 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-email" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
                 E-mail de Contato
               </label>
               <input
+                id="lead-email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -364,10 +382,12 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div>
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-status" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                 Estágio do Funil <span className="text-rose-500 ml-0.5">*</span>
               </label>
               <select
+                id="lead-status"
+                name="status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as LeadStatus)}
                 className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
@@ -383,11 +403,13 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-temperature" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Flame className="w-3.5 h-3.5 text-amber-500" />
                 Temperatura
               </label>
               <select
+                id="lead-temperature"
+                name="temperature"
                 value={temperature}
                 onChange={(e) => setTemperature(e.target.value as LeadTemperature)}
                 className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
@@ -399,11 +421,13 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-source" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Globe className="w-3.5 h-3.5 text-slate-400" />
                 Origem / Canal
               </label>
               <select
+                id="lead-source"
+                name="source"
                 value={source}
                 onChange={(e) => setSource(e.target.value as LeadSource)}
                 className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
@@ -422,11 +446,13 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-estimated-value" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
                 Valor Estimado da Oportunidade (R$)
               </label>
               <input
+                id="lead-estimated-value"
+                name="estimatedValue"
                 type="number"
                 step="0.01"
                 value={estimatedValue}
@@ -437,11 +463,13 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-next-follow-up" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Calendar className="w-3.5 h-3.5 text-indigo-600" />
                 Próximo Follow-up / Retorno
               </label>
               <input
+                id="lead-next-follow-up"
+                name="nextFollowUp"
                 type="date"
                 value={nextFollowUp}
                 onChange={(e) => setNextFollowUp(e.target.value)}
@@ -452,10 +480,12 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
 
           {status === 'PERDIDO' && (
             <div className="pt-2">
-              <label className="block text-xs font-semibold text-rose-700 mb-1">
+              <label htmlFor="lead-loss-reason" className="block text-xs font-semibold text-rose-700 mb-1">
                 Motivo da Perda / Desqualificação
               </label>
               <input
+                id="lead-loss-reason"
+                name="lossReason"
                 type="text"
                 value={lossReason}
                 onChange={(e) => setLossReason(e.target.value)}
@@ -468,11 +498,13 @@ export const LeadFormModal: React.FC<LeadFormModalProps> = ({
 
         {/* Notes */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+          <label htmlFor="lead-notes" className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
             <FileText className="w-3.5 h-3.5 text-slate-400" />
             Histórico / Notas da Negociação
           </label>
           <textarea
+            id="lead-notes"
+            name="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}

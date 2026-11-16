@@ -255,10 +255,12 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Nome */}
           <div>
-            <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+            <label htmlFor="edit-user-name" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
               <UserIcon className="w-3.5 h-3.5 text-indigo-500" /> Nome Completo
             </label>
             <input
+              id="edit-user-name"
+              name="name"
               type="text"
               value={formData.name}
               onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
@@ -270,10 +272,12 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
           {/* E-mail (Somente leitura para integridade de login) */}
           <div>
-            <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+            <label htmlFor="edit-user-email" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
               <Mail className="w-3.5 h-3.5 text-indigo-500" /> E-mail de Acesso
             </label>
             <input
+              id="edit-user-email"
+              name="email"
               type="email"
               value={formData.email}
               disabled
@@ -284,10 +288,12 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
           {/* CPF */}
           <div>
-            <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+            <label htmlFor="edit-user-cpf" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
               <CreditCard className="w-3.5 h-3.5 text-indigo-500" /> Documento CPF
             </label>
             <input
+              id="edit-user-cpf"
+              name="cpf"
               type="text"
               value={formData.cpf}
               onChange={(e) => setFormData((prev) => ({ ...prev, cpf: formatCPF(e.target.value) }))}
@@ -300,10 +306,12 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
           {/* Data de Nascimento */}
           <div>
-            <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+            <label htmlFor="edit-user-birthdate" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
               <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Data de Nascimento
             </label>
             <input
+              id="edit-user-birthdate"
+              name="birthDate"
               type="date"
               value={formData.birthDate}
               onChange={(e) => setFormData((prev) => ({ ...prev, birthDate: e.target.value }))}
@@ -314,10 +322,12 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
           {/* Telefone */}
           <div>
-            <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+            <label htmlFor="edit-user-phone" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
               <Phone className="w-3.5 h-3.5 text-indigo-500" /> Telefone / WhatsApp
             </label>
             <input
+              id="edit-user-phone"
+              name="phone"
               type="text"
               value={formData.phone}
               onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
@@ -328,10 +338,12 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
           {/* Departamento */}
           <div>
-            <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+            <label htmlFor="edit-user-dept" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
               <Building className="w-3.5 h-3.5 text-indigo-500" /> Departamento
             </label>
             <input
+              id="edit-user-dept"
+              name="department"
               type="text"
               value={formData.department}
               onChange={(e) => setFormData((prev) => ({ ...prev, department: e.target.value }))}
@@ -346,8 +358,9 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
               Situação da Conta
             </label>
             <div className="flex items-center gap-4">
-              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+              <label htmlFor="edit-user-status-ativo" className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
                 <input
+                  id="edit-user-status-ativo"
                   type="radio"
                   name="status"
                   value="ATIVO"
@@ -359,8 +372,9 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                 Ativo (pode acessar o sistema)
               </label>
 
-              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+              <label htmlFor="edit-user-status-inativo" className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
                 <input
+                  id="edit-user-status-inativo"
                   type="radio"
                   name="status"
                   value="INATIVO"

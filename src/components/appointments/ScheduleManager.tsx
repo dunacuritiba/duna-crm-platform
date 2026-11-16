@@ -315,6 +315,8 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
+              id="schedule-search-input"
+              name="search"
               type="text"
               placeholder="Buscar paciente, médico..."
               value={search}
@@ -326,6 +328,8 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
           {/* Clinic Filter */}
           <div>
             <select
+              id="schedule-clinic-filter"
+              name="selectedClinicId"
               value={selectedClinicId}
               onChange={(e) => setSelectedClinicId(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition"
@@ -342,6 +346,8 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
           {/* Status Filter */}
           <div>
             <select
+              id="schedule-status-filter"
+              name="statusFilter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition"
@@ -359,6 +365,8 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
           {/* Date Filter */}
           <div className="flex items-center gap-2">
             <input
+              id="schedule-date-filter"
+              name="dateFilter"
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
@@ -471,6 +479,8 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
                       {/* Status */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <select
+                          id={`appt-status-${appt.id}`}
+                          name="status"
                           value={appt.status}
                           onChange={(e) =>
                             onUpdateStatus(appt.id, e.target.value as AppointmentStatus)
@@ -539,6 +549,8 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
               </span>
             </div>
             <select
+              id="new-appt-clinic"
+              name="clinicId"
               value={formData.clinicId}
               onChange={(e) => {
                 const cId = e.target.value;
@@ -566,10 +578,12 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
           {/* Unidade & Médico */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="new-appt-unit" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                 Unidade Física
               </label>
               <select
+                id="new-appt-unit"
+                name="unitId"
                 value={formData.unitId || ''}
                 onChange={(e) => setFormData((prev) => ({ ...prev, unitId: e.target.value }))}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition"
@@ -584,10 +598,12 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="new-appt-doctor" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Stethoscope className="w-3.5 h-3.5 text-indigo-500" /> Médico Responsável
               </label>
               <select
+                id="new-appt-doctor"
+                name="doctorId"
                 value={formData.doctorId || ''}
                 onChange={(e) => setFormData((prev) => ({ ...prev, doctorId: e.target.value }))}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition"
@@ -607,10 +623,12 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
           {/* Data & Horário */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="new-appt-date" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <CalendarIcon className="w-3.5 h-3.5 text-indigo-500" /> Data da Consulta
               </label>
               <input
+                id="new-appt-date"
+                name="appointmentDate"
                 type="date"
                 value={formData.appointmentDate}
                 onChange={(e) =>
@@ -622,10 +640,12 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
             </div>
 
             <div>
-              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="new-appt-time" className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Clock className="w-3.5 h-3.5 text-indigo-500" /> Horário
               </label>
               <input
+                id="new-appt-time"
+                name="appointmentTime"
                 type="time"
                 value={formData.appointmentTime}
                 onChange={(e) =>
@@ -644,10 +664,12 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
             </h4>
 
             <div>
-              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="new-appt-patient-name" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                 Nome do Paciente <span className="text-rose-500 ml-0.5">*</span>
               </label>
               <input
+                id="new-appt-patient-name"
+                name="patientName"
                 type="text"
                 placeholder="Ex: Carlos Eduardo Silveira"
                 value={formData.patientName}
@@ -659,10 +681,12 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="new-appt-patient-phone" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                   Telefone / WhatsApp
                 </label>
                 <input
+                  id="new-appt-patient-phone"
+                  name="patientPhone"
                   type="text"
                   placeholder="(11) 99999-9999"
                   value={formData.patientPhone}
@@ -674,10 +698,12 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
               </div>
 
               <div>
-                <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="new-appt-patient-cpf" className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                   CPF do Paciente
                 </label>
                 <input
+                  id="new-appt-patient-cpf"
+                  name="patientCpf"
                   type="text"
                   placeholder="000.000.000-00"
                   value={formData.patientCpf}
@@ -693,8 +719,10 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
 
           {/* Observações */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 block mb-1">Observações do Atendimento</label>
+            <label htmlFor="new-appt-notes" className="text-xs font-semibold text-slate-700 block mb-1">Observações do Atendimento</label>
             <textarea
+              id="new-appt-notes"
+              name="notes"
               rows={2}
               value={formData.notes || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}

@@ -120,6 +120,7 @@ export const VerifyOtpView: React.FC<VerifyOtpViewProps> = ({
           <div className="max-w-[240px] mx-auto">
             <input
               id="otp-code-input"
+              name="otp"
               type="text"
               inputMode="numeric"
               maxLength={6}

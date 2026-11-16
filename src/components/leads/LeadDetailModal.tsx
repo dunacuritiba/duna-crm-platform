@@ -379,10 +379,12 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-convert-technical-crm" className="block text-xs font-semibold text-slate-700 mb-1">
                 CRM do Responsável Técnico <span className="text-rose-500">*</span>
               </label>
               <input
+                id="lead-convert-technical-crm"
+                name="technicalCrm"
                 type="text"
                 required
                 value={technicalCrm}
@@ -424,10 +426,12 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
         >
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label htmlFor="lead-loss-reason-input" className="block text-xs font-semibold text-slate-700 mb-1">
                 Motivo da Perda
               </label>
               <input
+                id="lead-loss-reason-input"
+                name="lossReason"
                 type="text"
                 value={lossReasonInput}
                 onChange={(e) => setLossReasonInput(e.target.value)}

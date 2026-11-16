@@ -200,6 +200,8 @@ export const ChatView: React.FC<ChatViewProps> = ({ currentUser, allUsers, onlin
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
+              id="chat-search"
+              name="search"
               type="text"
               placeholder="Buscar canal ou pessoa..."
               value={searchFilter}
@@ -476,6 +478,8 @@ export const ChatView: React.FC<ChatViewProps> = ({ currentUser, allUsers, onlin
             {/* Input Form */}
             <form onSubmit={handleSendMessage} className="p-3 sm:p-4 bg-white border-t border-slate-200 flex items-center gap-2">
               <input
+                id="chat-message-input"
+                name="message"
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}

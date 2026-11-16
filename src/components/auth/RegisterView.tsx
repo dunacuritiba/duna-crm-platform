@@ -194,6 +194,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
               </div>
               <input
                 id="register-name"
+                name="name"
                 type="text"
                 required
                 autoComplete="name"
@@ -226,6 +227,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
               </div>
               <input
                 id="register-cpf"
+                name="cpf"
                 type="text"
                 required
                 maxLength={14}
@@ -264,6 +266,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
               </div>
               <input
                 id="register-birthdate"
+                name="birthDate"
                 type="date"
                 required
                 max={new Date().toISOString().split('T')[0]}
@@ -302,6 +305,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
               </div>
               <input
                 id="register-email"
+                name="email"
                 type="email"
                 required
                 autoComplete="email"
@@ -338,6 +342,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
               </div>
               <input
                 id="register-pass"
+                name="password"
                 type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="new-password"
@@ -375,6 +380,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
               </div>
               <input
                 id="register-pass-confirm"
+                name="confirmPassword"
                 type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="new-password"

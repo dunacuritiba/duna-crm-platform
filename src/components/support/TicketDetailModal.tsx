@@ -166,10 +166,12 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
           {/* Status selector */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label htmlFor="ticket-detail-status" className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
               Status do Chamado
             </label>
             <select
+              id="ticket-detail-status"
+              name="status"
               value={ticket.status}
               disabled={isUpdatingStatus}
               onChange={(e) => handleStatusChange(e.target.value as TicketStatus)}
@@ -277,10 +279,12 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
           {/* Add comment form with MentionInput */}
           <form onSubmit={handleSendComment} className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-700">
+            <label htmlFor="ticket-detail-comment" className="block text-xs font-semibold text-slate-700">
               Adicionar Resposta ao Chamado (Digite @ para citar colegas):
             </label>
             <MentionInput
+              id="ticket-detail-comment"
+              name="comment"
               value={commentText}
               onChange={setCommentText}
               onMention={handleMention}

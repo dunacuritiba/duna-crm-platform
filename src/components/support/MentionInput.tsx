@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import type { User } from '../../types/user';
 
 interface MentionInputProps {
+  id?: string;
+  name?: string;
   value: string;
   onChange: (value: string) => void;
   onMention: (userId: string) => void;
@@ -13,6 +15,8 @@ interface MentionInputProps {
 }
 
 export const MentionInput: React.FC<MentionInputProps> = ({
+  id = 'mention-input',
+  name = 'description',
   value,
   onChange,
   onMention,
@@ -76,6 +80,8 @@ export const MentionInput: React.FC<MentionInputProps> = ({
   return (
     <div className="relative w-full">
       <textarea
+        id={id}
+        name={name}
         ref={textareaRef}
         rows={rows}
         required={required}

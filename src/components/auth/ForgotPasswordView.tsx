@@ -73,6 +73,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
             </div>
             <input
               id="forgot-email"
+              name="email"
               type="email"
               required
               autoComplete="email"

@@ -194,8 +194,10 @@ export const BroadcastNotificationModal: React.FC<BroadcastNotificationModalProp
           {/* Role selector subfield */}
           {targetType === 'ROLE' && (
             <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 animate-in fade-in">
-              <label className="block text-xs font-medium text-slate-600">Selecione o Grupo:</label>
+              <label htmlFor="broadcast-target-role" className="block text-xs font-medium text-slate-600">Selecione o Grupo:</label>
               <select
+                id="broadcast-target-role"
+                name="targetRole"
                 value={targetRole}
                 onChange={(e) => setTargetRole(e.target.value as any)}
                 className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -210,8 +212,10 @@ export const BroadcastNotificationModal: React.FC<BroadcastNotificationModalProp
           {/* User selector subfield */}
           {targetType === 'USER' && (
             <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 animate-in fade-in">
-              <label className="block text-xs font-medium text-slate-600">Selecione o Usuário:</label>
+              <label htmlFor="broadcast-target-user" className="block text-xs font-medium text-slate-600">Selecione o Usuário:</label>
               <select
+                id="broadcast-target-user"
+                name="targetUserId"
                 value={targetUserId}
                 onChange={(e) => setTargetUserId(e.target.value)}
                 required
@@ -230,10 +234,12 @@ export const BroadcastNotificationModal: React.FC<BroadcastNotificationModalProp
 
         {/* Title */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+          <label htmlFor="broadcast-title" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
             Título do Comunicado *
           </label>
           <input
+            id="broadcast-title"
+            name="title"
             type="text"
             required
             value={title}
@@ -245,10 +251,12 @@ export const BroadcastNotificationModal: React.FC<BroadcastNotificationModalProp
 
         {/* Message */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+          <label htmlFor="broadcast-message" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
             Mensagem Completa *
           </label>
           <textarea
+            id="broadcast-message"
+            name="message"
             required
             rows={4}
             value={message}

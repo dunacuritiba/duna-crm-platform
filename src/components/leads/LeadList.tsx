@@ -133,6 +133,8 @@ export const LeadList: React.FC<LeadListProps> = ({
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
+              id="lead-search-input"
+              name="search"
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -192,6 +194,8 @@ export const LeadList: React.FC<LeadListProps> = ({
           {/* Status Filter */}
           <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl px-2 py-1 shadow-2xs self-start sm:self-auto">
             <select
+              id="lead-status-filter"
+              name="statusFilter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
               className="text-xs font-medium text-slate-700 bg-transparent border-0 focus:outline-none cursor-pointer"
@@ -403,6 +407,8 @@ export const LeadList: React.FC<LeadListProps> = ({
 
                       <td className="py-4 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <select
+                          id={`lead-status-${lead.id}`}
+                          name="status"
                           value={lead.status}
                           onChange={(e) => onUpdateStatus(lead.id, e.target.value as LeadStatus)}
                           className={`text-[10px] font-bold rounded-full px-2.5 py-1 border cursor-pointer focus:outline-none transition-colors whitespace-nowrap ${getLeadStatusBadgeClass(

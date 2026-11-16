@@ -290,6 +290,8 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
 
       {/* Hidden File Inputs */}
       <input
+        id="photo-uploader-file-input"
+        name="photoFile"
         ref={fileInputRef}
         type="file"
         accept="image/*"
@@ -297,6 +299,8 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
         className="hidden"
       />
       <input
+        id="photo-uploader-camera-input"
+        name="photoCamera"
         ref={mobileCameraInputRef}
         type="file"
         accept="image/*"

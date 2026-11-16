@@ -97,6 +97,8 @@ import { Building2, Target, Loader2, Layers } from 'lucide-react';
 
 export function App() {
   const [users, setUsers] = useState<User[]>([]);
+  const usersRef = useRef<User[]>([]);
+  usersRef.current = users;
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const presenceTeardownRef = useRef<(() => void) | null>(null);
   const [clinics, setClinics] = useState<MedicalClinic[]>([]);
@@ -218,7 +220,7 @@ export function App() {
   // Load tickets from Supabase
   const loadTickets = useCallback(async () => {
     try {
-      const data = await fetchTicketsFromSupabase(users);
+      const data = await fetchTicketsFromSupabase(usersRef.current);
       setTickets(data);
       setSelectedTicketForDetail((prev) => {
         if (!prev) return null;
@@ -227,7 +229,7 @@ export function App() {
     } catch (err: any) {
       console.warn('Falha ao carregar chamados:', err);
     }
-  }, [users]);
+  }, []);
 
   // Load users from Supabase duna-flow
   const loadUsers = useCallback(async () => {
@@ -266,15 +268,18 @@ export function App() {
 
   // Real-time presence & user database sync (Zero page reload required)
   useEffect(() => {
-    if (!isAuthenticated || !currentUser) return;
+    if (!isAuthenticated || !currentUserIdState) return;
+
+    const activeUser = usersRef.current.find((u) => u.id === currentUserIdState);
+    if (!activeUser) return;
 
     // Load initial notifications for current user
-    loadNotifications(currentUser.id, currentUser.role);
+    loadNotifications(activeUser.id, activeUser.role);
 
     // 1. Subscribe to Realtime Presence Channel (instant join/leave events across all clients)
     const unsubscribePresence = subscribeToOnlinePresence(
-      currentUser.id,
-      currentUser.name,
+      activeUser.id,
+      activeUser.name,
       (ids) => {
         setOnlineUserIds(ids);
       }
@@ -305,8 +310,8 @@ export function App() {
           const newNotif = mapDbToNotification(payload.new, false);
           if (
             newNotif.targetType === 'ALL' ||
-            (newNotif.targetType === 'ROLE' && newNotif.targetRole === currentUser.role) ||
-            (newNotif.targetType === 'USER' && newNotif.targetUserId === currentUser.id)
+            (newNotif.targetType === 'ROLE' && newNotif.targetRole === activeUser.role) ||
+            (newNotif.targetType === 'USER' && newNotif.targetUserId === activeUser.id)
           ) {
             setNotifications((prev) => [newNotif, ...prev]);
             addToast(
@@ -332,9 +337,9 @@ export function App() {
       .subscribe();
 
     // 5. Periodic heartbeat for database persistence (every 45s)
-    updateUserPresence(currentUser.id);
+    updateUserPresence(activeUser.id);
     const interval = setInterval(() => {
-      updateUserPresence(currentUser.id);
+      updateUserPresence(activeUser.id);
       refreshUsersSilently();
     }, 45000);
 
@@ -345,7 +350,7 @@ export function App() {
       supabase.removeChannel(notifSub);
       supabase.removeChannel(ticketSub);
     };
-  }, [isAuthenticated, currentUser?.id, currentUser?.name, currentUser?.role, refreshUsersSilently, loadNotifications, loadTickets]);
+  }, [isAuthenticated, currentUserIdState]);
 
   useEffect(() => {
     const initApp = async () => {
@@ -363,7 +368,8 @@ export function App() {
       }
     };
     initApp();
-  }, [loadUsers, loadClinics, loadLeads, loadAppointments, loadTickets]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Enriched users with dynamically calculated active contract portfolio count & instant presence
   const enrichedUsers = useMemo(() => {

@@ -155,6 +155,8 @@ export const TicketList: React.FC<TicketListProps> = ({
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
+              id="ticket-search"
+              name="search"
               type="text"
               placeholder="Buscar por #código, título, tag (#bug) ou solicitante..."
               value={search}

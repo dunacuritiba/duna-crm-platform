@@ -207,6 +207,8 @@ export const PortfolioManager: React.FC<PortfolioManagerProps> = ({
                 </div>
 
                 <select
+                  id={`quick-assign-${clinic.id}`}
+                  name="attendantId"
                   disabled={assigningClinicId === clinic.id || attendants.length === 0}
                   onChange={(e) => handleQuickAssign(clinic.id, e.target.value)}
                   defaultValue=""
@@ -232,6 +234,8 @@ export const PortfolioManager: React.FC<PortfolioManagerProps> = ({
         <div className="relative flex-1 w-full sm:max-w-md">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
+            id="search-attendant"
+            name="search"
             type="text"
             placeholder="Buscar atendente por nome ou e-mail..."
             value={search}
