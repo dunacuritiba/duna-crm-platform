@@ -168,8 +168,8 @@ export const UserList: React.FC<UserListProps> = ({
             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-6 whitespace-nowrap">Usuário</th>
-                <th className="py-3.5 px-4 whitespace-nowrap">Perfil</th>
-                <th className="py-3.5 px-4 whitespace-nowrap">Status</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">Perfil</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">Status</th>
                 <th className="py-3.5 px-6 text-right whitespace-nowrap">Ações</th>
               </tr>
             </thead>
@@ -222,28 +222,28 @@ export const UserList: React.FC<UserListProps> = ({
                       </td>
 
                       {/* Role & Portfolio */}
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="space-y-1">
+                      <td className="py-4 px-4 whitespace-nowrap text-center">
+                        <div className="inline-flex items-center justify-center gap-2">
                           <RoleBadge role={user.role} />
                           {user.role === 'ATENDENTE' && (
-                            <div>
-                              <button
-                                type="button"
-                                onClick={() => onOpenPortfolioModal(user)}
-                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-md border border-amber-200 transition whitespace-nowrap"
-                                title="Gerenciar carteira de clientes"
-                              >
-                                <Briefcase className="w-2.5 h-2.5" />
-                                Carteira: {user.assignedClinicsCount || 0}
-                              </button>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => onOpenPortfolioModal(user)}
+                              className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-full border border-amber-200 transition whitespace-nowrap shadow-xs cursor-pointer"
+                              title="Gerenciar carteira de clientes"
+                            >
+                              <Briefcase className="w-3.5 h-3.5 text-amber-600" />
+                              <span>Carteira: <strong className="font-semibold">{user.assignedClinicsCount || 0}</strong></span>
+                            </button>
                           )}
                         </div>
                       </td>
 
                       {/* Status */}
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <StatusBadge status={user.status} />
+                      <td className="py-4 px-4 whitespace-nowrap text-center">
+                        <div className="inline-flex items-center justify-center">
+                          <StatusBadge status={user.status} />
+                        </div>
                       </td>
 
                       {/* Actions */}
