@@ -150,6 +150,63 @@ export function App() {
   const [isTicketCreateModalOpen, setIsTicketCreateModalOpen] = useState(false);
   const [selectedTicketForDetail, setSelectedTicketForDetail] = useState<Ticket | null>(null);
 
+  // Ticket viewed mentions state: mapping ticketId -> timestamp ISO string
+  const [viewedMentionTicketIds, setViewedMentionTicketIds] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem(`duna_ticket_mentions_viewed_${currentUserIdState}`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Sync viewed mentions when user changes
+  useEffect(() => {
+    if (!currentUserIdState) return;
+    try {
+      const saved = localStorage.getItem(`duna_ticket_mentions_viewed_${currentUserIdState}`);
+      setViewedMentionTicketIds(saved ? JSON.parse(saved) : {});
+    } catch {
+      setViewedMentionTicketIds({});
+    }
+  }, [currentUserIdState]);
+
+  const handleMarkTicketMentionAsViewed = useCallback((ticketId: string) => {
+    if (!currentUserIdState) return;
+    const nowIso = new Date().toISOString();
+    setViewedMentionTicketIds((prev) => {
+      const next = { ...prev, [ticketId]: nowIso };
+      try {
+        localStorage.setItem(`duna_ticket_mentions_viewed_${currentUserIdState}`, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, [currentUserIdState]);
+
+  const handleMarkAllTicketMentionsAsViewed = useCallback(() => {
+    if (!currentUserIdState) return;
+    const nowIso = new Date().toISOString();
+    setViewedMentionTicketIds((prev) => {
+      const next = { ...prev };
+      tickets.forEach((t) => {
+        if (t.mentionedUserIds?.includes(currentUserIdState)) {
+          next[t.id] = nowIso;
+        }
+      });
+      try {
+        localStorage.setItem(`duna_ticket_mentions_viewed_${currentUserIdState}`, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, [currentUserIdState, tickets]);
+
+  const handleViewTicket = useCallback((ticket: Ticket) => {
+    setSelectedTicketForDetail(ticket);
+    if (currentUserIdState && ticket.mentionedUserIds?.includes(currentUserIdState)) {
+      handleMarkTicketMentionAsViewed(ticket.id);
+    }
+  }, [currentUserIdState, handleMarkTicketMentionAsViewed]);
+
   // Chat unread count state
   const [chatUnreadCounts, setChatUnreadCounts] = useState<Record<string, number>>({});
 
@@ -445,13 +502,16 @@ export function App() {
 
   const ticketMentionCount = useMemo(() => {
     if (!currentUserIdState) return 0;
-    return tickets.filter(
-      (t) =>
-        t.status !== 'RESOLVIDO' &&
-        t.status !== 'FECHADO' &&
-        t.mentionedUserIds?.includes(currentUserIdState)
-    ).length;
-  }, [tickets, currentUserIdState]);
+    return tickets.filter((t) => {
+      if (t.status === 'RESOLVIDO' || t.status === 'FECHADO') return false;
+      if (!t.mentionedUserIds?.includes(currentUserIdState)) return false;
+      const viewedAt = viewedMentionTicketIds[t.id];
+      if (!viewedAt) return true;
+      const ticketTime = new Date(t.updatedAt || t.createdAt).getTime();
+      const viewedTime = new Date(viewedAt).getTime();
+      return ticketTime > viewedTime;
+    }).length;
+  }, [tickets, currentUserIdState, viewedMentionTicketIds]);
 
   // STRICT ACCESS CONTROL:
   // - ADMIN has access to all tabs
@@ -1267,8 +1327,10 @@ export function App() {
                 <TicketList
                   tickets={tickets}
                   currentUser={currentUser}
+                  viewedMentionTicketIds={viewedMentionTicketIds}
                   onOpenCreateModal={() => setIsTicketCreateModalOpen(true)}
-                  onViewTicket={(t) => setSelectedTicketForDetail(t)}
+                  onViewTicket={handleViewTicket}
+                  onMarkAllMentionsAsViewed={handleMarkAllTicketMentionsAsViewed}
                 />
               )}
 
@@ -1317,6 +1379,7 @@ export function App() {
         onUpdateStatus={handleUpdateTicketStatus}
         users={enrichedUsers}
         currentUserId={currentUser.id}
+        onMarkViewed={handleMarkTicketMentionAsViewed}
       />
 
       {/* Modal: Cadastrar Novo Usuário por Admin */}

@@ -16,6 +16,8 @@ interface TicketListProps {
   currentUser?: User;
   onOpenCreateModal: () => void;
   onViewTicket: (ticket: Ticket) => void;
+  viewedMentionTicketIds?: Record<string, string>;
+  onMarkAllMentionsAsViewed?: () => void;
 }
 
 export const TicketList: React.FC<TicketListProps> = ({
@@ -23,16 +25,31 @@ export const TicketList: React.FC<TicketListProps> = ({
   currentUser,
   onOpenCreateModal,
   onViewTicket,
+  viewedMentionTicketIds = {},
+  onMarkAllMentionsAsViewed,
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | TicketStatus | 'SLA_RISK' | 'MENTIONED'>('ALL');
 
-  const mentionedCount = useMemo(() => {
+  const isUnviewedMention = (t: Ticket) => {
+    if (!currentUser?.id || !t.mentionedUserIds?.includes(currentUser.id)) return false;
+    if (t.status === 'RESOLVIDO' || t.status === 'FECHADO') return false;
+    const viewedAt = viewedMentionTicketIds[t.id];
+    if (!viewedAt) return true;
+    const ticketTime = new Date(t.updatedAt || t.createdAt).getTime();
+    return ticketTime > new Date(viewedAt).getTime();
+  };
+
+  const totalMentionedCount = useMemo(() => {
     if (!currentUser?.id) return 0;
     return tickets.filter(
       (t) => t.status !== 'RESOLVIDO' && t.status !== 'FECHADO' && t.mentionedUserIds?.includes(currentUser.id)
     ).length;
   }, [tickets, currentUser?.id]);
+
+  const unreadMentionCount = useMemo(() => {
+    return tickets.filter((t) => isUnviewedMention(t)).length;
+  }, [tickets, currentUser?.id, viewedMentionTicketIds]);
 
   const filteredTickets = useMemo(() => {
     return tickets.filter((t) => {
@@ -249,26 +266,50 @@ export const TicketList: React.FC<TicketListProps> = ({
           </button>
 
           {currentUser && (
-            <button
-              onClick={() => setStatusFilter(statusFilter === 'MENTIONED' ? 'ALL' : 'MENTIONED')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
-                statusFilter === 'MENTIONED'
-                  ? 'bg-amber-600 text-white font-bold shadow-2xs'
-                  : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
-              }`}
-            >
-              <span className="font-black text-xs">@</span>
-              Marcados para Mim
-              {mentionedCount > 0 && (
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                    statusFilter === 'MENTIONED' ? 'bg-amber-700 text-white' : 'bg-amber-200 text-amber-900'
-                  }`}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === 'MENTIONED' ? 'ALL' : 'MENTIONED')}
+                className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+                  statusFilter === 'MENTIONED'
+                    ? 'bg-amber-600 text-white font-bold shadow-2xs'
+                    : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                }`}
+              >
+                <span className="font-black text-xs">@</span>
+                Marcados para Mim
+                {unreadMentionCount > 0 ? (
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      statusFilter === 'MENTIONED' ? 'bg-amber-800 text-white' : 'bg-amber-500 text-white shadow-2xs'
+                    }`}
+                    title={`${unreadMentionCount} nova(s) marcação(ões) não visualizada(s)`}
+                  >
+                    {unreadMentionCount} nova(s)
+                  </span>
+                ) : totalMentionedCount > 0 ? (
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-medium ${
+                      statusFilter === 'MENTIONED' ? 'bg-amber-700 text-white' : 'bg-amber-200 text-amber-900'
+                    }`}
+                  >
+                    {totalMentionedCount}
+                  </span>
+                ) : null}
+              </button>
+
+              {statusFilter === 'MENTIONED' && unreadMentionCount > 0 && onMarkAllMentionsAsViewed && (
+                <button
+                  type="button"
+                  onClick={onMarkAllMentionsAsViewed}
+                  className="px-2.5 py-1.5 rounded-lg font-medium text-amber-800 hover:text-amber-950 hover:bg-amber-100 transition flex items-center gap-1 border border-amber-200 text-xs"
+                  title="Marcar todas as marcações como visualizadas"
                 >
-                  {mentionedCount}
-                </span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
+                  Marcar vistas
+                </button>
               )}
-            </button>
+            </div>
           )}
         </div>
       </div>
@@ -312,10 +353,23 @@ export const TicketList: React.FC<TicketListProps> = ({
                             {ticket.title}
                           </span>
                           {currentUser?.id && ticket.mentionedUserIds?.includes(currentUser.id) && (
-                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
-                              <span className="font-black text-[9px]">@</span>
-                              Marcado
-                            </span>
+                            isUnviewedMention(ticket) ? (
+                              <span
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-2xs animate-pulse"
+                                title="Você foi marcado neste chamado e ainda não visualizou"
+                              >
+                                <span className="font-black text-[9px]">@</span>
+                                Nova Marcação
+                              </span>
+                            ) : (
+                              <span
+                                className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200"
+                                title="Você está marcado neste chamado (já visualizado)"
+                              >
+                                <span className="font-bold text-[9px] text-amber-600">@</span>
+                                Marcado
+                              </span>
+                            )
                           )}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
@@ -399,10 +453,23 @@ export const TicketList: React.FC<TicketListProps> = ({
                     {ticket.ticketNumber}
                   </span>
                   {currentUser?.id && ticket.mentionedUserIds?.includes(currentUser.id) && (
-                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
-                      <span className="font-black text-[9px]">@</span>
-                      Marcado
-                    </span>
+                    isUnviewedMention(ticket) ? (
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-2xs animate-pulse"
+                        title="Você foi marcado neste chamado e ainda não visualizou"
+                      >
+                        <span className="font-black text-[9px]">@</span>
+                        Nova Marcação
+                      </span>
+                    ) : (
+                      <span
+                        className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200"
+                        title="Você está marcado neste chamado (já visualizado)"
+                      >
+                        <span className="font-bold text-[9px] text-amber-600">@</span>
+                        Marcado
+                      </span>
+                    )
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">

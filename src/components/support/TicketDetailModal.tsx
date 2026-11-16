@@ -20,6 +20,7 @@ interface TicketDetailModalProps {
   onUpdateStatus: (ticketId: string, newStatus: TicketStatus) => Promise<void>;
   users: User[];
   currentUserId: string;
+  onMarkViewed?: (ticketId: string) => void;
 }
 
 export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
@@ -29,6 +30,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   onUpdateStatus,
   users,
   currentUserId,
+  onMarkViewed,
 }) => {
   if (!ticket) return null;
 
@@ -37,6 +39,13 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   const [mentionedUserIds, setMentionedUserIds] = useState<string[]>([]);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // Mark mention as viewed when opened
+  useEffect(() => {
+    if (ticket && currentUserId && ticket.mentionedUserIds?.includes(currentUserId)) {
+      onMarkViewed?.(ticket.id);
+    }
+  }, [ticket?.id, currentUserId, onMarkViewed]);
 
   // Load comments
   useEffect(() => {
