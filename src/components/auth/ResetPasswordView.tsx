@@ -71,7 +71,7 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
             </div>
           </div>
           <p className="text-[11px] text-slate-500 pt-1 border-t border-amber-100">
-            Acesse seu e-mail, localize a mensagem do NexusCRM com o código de 6 dígitos e digite abaixo.
+            Acesse seu e-mail, localize a mensagem do DunaCRM com o código de 6 dígitos e digite abaixo.
           </p>
         </div>
 

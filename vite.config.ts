@@ -32,13 +32,13 @@ function otpEmailPlugin(env: Record<string, string>): Plugin {
 
             const isRegistration = type === 'REGISTRATION';
             const subject = isRegistration
-              ? `NexusCRM - Seu Código de Ativação: ${otpCode}`
-              : `NexusCRM - Seu Código de Recuperação de Senha: ${otpCode}`;
+              ? `DunaCRM - Seu Código de Ativação: ${otpCode}`
+              : `DunaCRM - Seu Código de Recuperação de Senha: ${otpCode}`;
 
             const htmlContent = `
               <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;">
                 <div style="margin-bottom: 24px; text-align: center;">
-                  <h1 style="color: #4f46e5; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Nexus<span style="color: #0284c7;">CRM</span></h1>
+                  <h1 style="color: #4f46e5; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Duna<span style="color: #0284c7;">CRM</span></h1>
                   <p style="color: #64748b; font-size: 13px; margin: 4px 0 0 0;">Plataforma de Gestão e Relacionamento</p>
                 </div>
                 
@@ -49,8 +49,8 @@ function otpEmailPlugin(env: Record<string, string>): Plugin {
                   <p style="color: #475569; font-size: 14px; line-height: 22px; margin: 0 0 16px 0;">
                     ${
                       isRegistration
-                        ? `Olá, <strong>${name || 'Usuário'}</strong>! Recebemos seu cadastro no NexusCRM. Para ativar sua conta e liberar seu acesso, utilize o código de verificação abaixo:`
-                        : `Olá! Recebemos uma solicitação de redefinição de senha para sua conta no NexusCRM. Para cadastrar sua nova senha, utilize o código de verificação abaixo:`
+                        ? `Olá, <strong>${name || 'Usuário'}</strong>! Recebemos seu cadastro no DunaCRM. Para ativar sua conta e liberar seu acesso, utilize o código de verificação abaixo:`
+                        : `Olá! Recebemos uma solicitação de redefinição de senha para sua conta no DunaCRM. Para cadastrar sua nova senha, utilize o código de verificação abaixo:`
                     }
                   </p>
                   
@@ -102,7 +102,7 @@ function otpEmailPlugin(env: Record<string, string>): Plugin {
                   ? env.SMTP_FROM.includes('<')
                     ? env.SMTP_FROM
                     : `"${env.SMTP_FROM}" <${smtpUser}>`
-                  : `"Nexus CRM" <${smtpUser}>`;
+                  : `"Duna CRM" <${smtpUser}>`;
 
                 await transporter.sendMail({
                   from: fromHeader,
@@ -137,7 +137,7 @@ function otpEmailPlugin(env: Record<string, string>): Plugin {
                       'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                      from: 'Nexus CRM <onboarding@resend.dev>',
+                      from: 'Duna CRM <onboarding@resend.dev>',
                       to: [email],
                       subject,
                       html: htmlContent,

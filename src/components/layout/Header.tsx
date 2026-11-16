@@ -44,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div>
             <span className="font-bold text-slate-800 text-base sm:text-lg tracking-tight">
-              Nexus<span className="text-indigo-600">CRM</span>
+              Duna<span className="text-indigo-600">CRM</span>
             </span>
             <span className="inline-block ml-2 text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono">
               v{APP_CONFIG.version}

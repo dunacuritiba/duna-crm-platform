@@ -31,7 +31,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
             <Layers className="w-6 h-6" />
           </div>
           <span className="font-bold text-slate-800 text-2xl tracking-tight">
-            Nexus<span className="text-indigo-600">CRM</span>
+            Duna<span className="text-indigo-600">CRM</span>
           </span>
         </div>
 

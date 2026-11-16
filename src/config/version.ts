@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  name: 'NexusCRM',
+  name: 'DunaCRM',
   version: '1.0.2',
   buildYear: '2026',
 };
