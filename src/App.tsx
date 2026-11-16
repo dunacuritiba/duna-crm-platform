@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { User, CreateUserInput, SignUpInput, UpdateUserProfileInput, UpdateUserInput, AuthScreen } from './types/user';
 import type { MedicalClinic, CreateClinicInput, CreateClinicMemberInput } from './types/clinic';
 import type { Lead, CreateLeadInput, LeadStatus } from './types/lead';
@@ -15,6 +15,7 @@ import {
   updateSupabaseUserSelf,
   updateSupabaseUserByAdmin,
   updateUserPresence,
+  setUserOffline,
   subscribeToOnlinePresence,
   subscribeToUserChanges,
   isUserOnline,
@@ -76,6 +77,7 @@ import { Building2, Target, Loader2, Layers } from 'lucide-react';
 export function App() {
   const [users, setUsers] = useState<User[]>([]);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+  const presenceTeardownRef = useRef<(() => void) | null>(null);
   const [clinics, setClinics] = useState<MedicalClinic[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [currentUserIdState, setCurrentUserIdState] = useState<string>('');
@@ -218,6 +220,7 @@ export function App() {
         setOnlineUserIds(ids);
       }
     );
+    presenceTeardownRef.current = unsubscribePresence;
 
     // 2. Subscribe to Realtime Database Changes (instant updates without reload)
     const unsubscribeDb = subscribeToUserChanges((changedUser, eventType) => {
@@ -450,10 +453,23 @@ export function App() {
 
   // Logout
   const handleLogout = () => {
+    const leavingUserId = currentUserIdState;
+    if (presenceTeardownRef.current) {
+      presenceTeardownRef.current();
+      presenceTeardownRef.current = null;
+    }
+    if (leavingUserId) {
+      setUserOffline(leavingUserId);
+    }
     clearCurrentSession();
     setCurrentUserIdState('');
     setIsAuthenticated(false);
     setAuthScreen('login');
+    setOnlineUserIds((prev) => {
+      const next = new Set(prev);
+      next.delete(leavingUserId);
+      return next;
+    });
     addToast('info', 'Sessão encerrada', 'Você saiu da plataforma com segurança.');
   };
 

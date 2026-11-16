@@ -45,10 +45,25 @@ export async function updateUserPresence(userId: string): Promise<void> {
 }
 
 /**
- * Checks whether a user is currently considered online
- * - Current user is always online
- * - Real-time presence set checked first (instant via WebSockets)
- * - Fallback to last_seen_at timestamp within the last 3 minutes
+ * Immediately marks user as offline in Supabase
+ */
+export async function setUserOffline(userId: string): Promise<void> {
+  if (!userId) return;
+  try {
+    await supabase
+      .from('crm_users')
+      .update({ last_seen_at: null })
+      .eq('id', userId);
+  } catch (err) {
+    console.warn('Erro ao definir usuário como offline:', err);
+  }
+}
+
+/**
+ * Checks whether a user is currently considered online.
+ * - When real-time presence (onlineUserIds) is active, IT IS THE ABSOLUTE TRUTH:
+ *   if the user is not in the presence set (logged out or tab closed), they are OFFLINE immediately.
+ * - Fallback to last_seen_at only when presence tracking is completely uninitialized.
  */
 export function isUserOnline(
   user: User,
@@ -56,25 +71,31 @@ export function isUserOnline(
   onlineUserIds?: Set<string> | string[]
 ): boolean {
   if (user.status !== 'ATIVO') return false;
-  if (currentUserId && user.id === currentUserId) return true;
+
+  // 1. Authoritative real-time presence via WebSockets
   if (onlineUserIds) {
     if (onlineUserIds instanceof Set) {
-      if (onlineUserIds.has(user.id)) return true;
-    } else if (Array.isArray(onlineUserIds)) {
-      if (onlineUserIds.includes(user.id)) return true;
+      return onlineUserIds.has(user.id);
+    }
+    if (Array.isArray(onlineUserIds)) {
+      return onlineUserIds.includes(user.id);
     }
   }
-  if (user.isOnline === true) return true;
+
+  // 2. Only if real-time presence channel is completely absent:
+  if (currentUserId && user.id === currentUserId) return true;
+  if (user.isOnline !== undefined) return user.isOnline;
+
   if (!user.lastSeenAt) return false;
   const lastSeenMs = new Date(user.lastSeenAt).getTime();
   const diffMs = Date.now() - lastSeenMs;
-  return diffMs <= 3 * 60 * 1000;
+  return diffMs <= 60 * 1000;
 }
 
 /**
  * Subscribes to real-time online presence via Supabase Realtime Channels.
- * When any user joins or leaves the platform, the callback is immediately triggered
- * without needing any page reload.
+ * When any user joins or leaves the platform (logs out, closes tab/browser),
+ * the callback is immediately triggered without needing any page reload.
  */
 export function subscribeToOnlinePresence(
   currentUserId: string,
@@ -103,7 +124,7 @@ export function subscribeToOnlinePresence(
         });
       }
     });
-    // Ensure current user is included
+    // Ensure current user is included if channel is still active
     ids.add(currentUserId);
     onPresenceChange(ids);
   };
@@ -136,11 +157,30 @@ export function subscribeToOnlinePresence(
     try {
       channel.untrack();
     } catch {}
+
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://dqrpsaadedsvccpbptea.supabase.co';
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxcnBzYWFkZWRzdmNjcGJwdGVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNzA5MzcsImV4cCI6MjEwOTg0NjkzN30.6QxzAXQoE1wq2-TxXyRQfrnrYXDrTk-GskefCucklo4';
+      fetch(`${supabaseUrl}/rest/v1/crm_users?id=eq.${currentUserId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ last_seen_at: null }),
+        keepalive: true,
+      });
+    } catch {}
   };
+
   window.addEventListener('beforeunload', handleBeforeUnload);
+  window.addEventListener('pagehide', handleBeforeUnload);
 
   return () => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.removeEventListener('pagehide', handleBeforeUnload);
     try {
       channel.untrack();
       supabase.removeChannel(channel);
