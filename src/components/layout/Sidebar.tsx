@@ -1,5 +1,6 @@
 import React from 'react';
 import type { UserRole } from '../../types/user';
+import { APP_CONFIG } from '../../config/version';
 import {
   LayoutDashboard,
   Users,
@@ -153,6 +154,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               );
             })}
           </nav>
+        </div>
+
+        {/* Sidebar Bottom Footer: App Version */}
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs px-2">
+          <div className="flex items-center gap-2 text-slate-500 font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>{APP_CONFIG.name}</span>
+          </div>
+          <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+            v{APP_CONFIG.version}
+          </span>
         </div>
       </aside>
     </>
