@@ -47,6 +47,21 @@ import {
   deleteAppointmentInSupabase,
 } from './services/appointmentService';
 import { isClinicContractActive } from './utils/contract';
+import type { AppNotification, CreateNotificationInput } from './types/notification';
+import type { Ticket, CreateTicketInput, TicketStatus } from './types/ticket';
+import {
+  fetchUserNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  createBroadcastNotification,
+  mapDbToNotification,
+} from './services/notificationService';
+import {
+  fetchTicketsFromSupabase,
+  createTicketInSupabase,
+  updateTicketStatusInSupabase,
+} from './services/ticketService';
+import { supabase } from './services/supabase';
 import { Header } from './components/layout/Header';
 import { Sidebar, type NavTab } from './components/layout/Sidebar';
 import { Overview } from './components/dashboard/Overview';
@@ -64,6 +79,12 @@ import { LeadList } from './components/leads/LeadList';
 import { LeadFormModal } from './components/leads/LeadFormModal';
 import { LeadDetailModal } from './components/leads/LeadDetailModal';
 import { MyProfile } from './components/profile/MyProfile';
+import { NotificationDrawer } from './components/notifications/NotificationDrawer';
+import { BroadcastNotificationModal } from './components/notifications/BroadcastNotificationModal';
+import { ChatView } from './components/chat/ChatView';
+import { TicketList } from './components/support/TicketList';
+import { TicketCreateModal } from './components/support/TicketCreateModal';
+import { TicketDetailModal } from './components/support/TicketDetailModal';
 import { Modal } from './components/common/Modal';
 import { ToastContainer, type ToastMessage } from './components/common/Toast';
 import { LoginView } from './components/auth/LoginView';
@@ -115,6 +136,16 @@ export function App() {
   const [selectedLeadForEdit, setSelectedLeadForEdit] = useState<Lead | null>(null);
   const [selectedLeadForDetail, setSelectedLeadForDetail] = useState<Lead | null>(null);
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+
+  // Notifications state
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+
+  // Tickets state
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [isTicketCreateModalOpen, setIsTicketCreateModalOpen] = useState(false);
+  const [selectedTicketForDetail, setSelectedTicketForDetail] = useState<Ticket | null>(null);
 
   // Toasts state
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -173,6 +204,31 @@ export function App() {
     }
   }, []);
 
+  // Load notifications from Supabase
+  const loadNotifications = useCallback(async (userId?: string, userRole?: string) => {
+    if (!userId || !userRole) return;
+    try {
+      const data = await fetchUserNotifications(userId, userRole);
+      setNotifications(data);
+    } catch (err: any) {
+      console.warn('Falha ao carregar notificações:', err);
+    }
+  }, []);
+
+  // Load tickets from Supabase
+  const loadTickets = useCallback(async () => {
+    try {
+      const data = await fetchTicketsFromSupabase(users);
+      setTickets(data);
+      setSelectedTicketForDetail((prev) => {
+        if (!prev) return null;
+        return data.find((t) => t.id === prev.id) || null;
+      });
+    } catch (err: any) {
+      console.warn('Falha ao carregar chamados:', err);
+    }
+  }, [users]);
+
   // Load users from Supabase duna-flow
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
@@ -212,6 +268,9 @@ export function App() {
   useEffect(() => {
     if (!isAuthenticated || !currentUser) return;
 
+    // Load initial notifications for current user
+    loadNotifications(currentUser.id, currentUser.role);
+
     // 1. Subscribe to Realtime Presence Channel (instant join/leave events across all clients)
     const unsubscribePresence = subscribeToOnlinePresence(
       currentUser.id,
@@ -236,7 +295,43 @@ export function App() {
       });
     });
 
-    // 3. Periodic heartbeat for database persistence (every 45s)
+    // 3. Real-time Notifications subscription
+    const notifSub = supabase
+      .channel('crm_notifs_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'crm_notifications' },
+        (payload) => {
+          const newNotif = mapDbToNotification(payload.new, false);
+          if (
+            newNotif.targetType === 'ALL' ||
+            (newNotif.targetType === 'ROLE' && newNotif.targetRole === currentUser.role) ||
+            (newNotif.targetType === 'USER' && newNotif.targetUserId === currentUser.id)
+          ) {
+            setNotifications((prev) => [newNotif, ...prev]);
+            addToast(
+              newNotif.type === 'URGENTE' ? 'error' : newNotif.type === 'ALERTA' ? 'info' : 'success',
+              newNotif.title,
+              newNotif.message
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    // 4. Real-time Tickets subscription
+    const ticketSub = supabase
+      .channel('crm_tickets_realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'crm_tickets' },
+        () => {
+          loadTickets();
+        }
+      )
+      .subscribe();
+
+    // 5. Periodic heartbeat for database persistence (every 45s)
     updateUserPresence(currentUser.id);
     const interval = setInterval(() => {
       updateUserPresence(currentUser.id);
@@ -247,8 +342,10 @@ export function App() {
       clearInterval(interval);
       unsubscribePresence();
       unsubscribeDb();
+      supabase.removeChannel(notifSub);
+      supabase.removeChannel(ticketSub);
     };
-  }, [isAuthenticated, currentUser?.id, currentUser?.name, refreshUsersSilently]);
+  }, [isAuthenticated, currentUser?.id, currentUser?.name, currentUser?.role, refreshUsersSilently, loadNotifications, loadTickets]);
 
   useEffect(() => {
     const initApp = async () => {
@@ -259,13 +356,14 @@ export function App() {
           loadClinics(),
           loadLeads(),
           loadAppointments(),
+          loadTickets(),
         ]);
       } finally {
         setIsInitialLoading(false);
       }
     };
     initApp();
-  }, [loadUsers, loadClinics, loadLeads, loadAppointments]);
+  }, [loadUsers, loadClinics, loadLeads, loadAppointments, loadTickets]);
 
   // Enriched users with dynamically calculated active contract portfolio count & instant presence
   const enrichedUsers = useMemo(() => {
@@ -289,15 +387,15 @@ export function App() {
 
   // STRICT ACCESS CONTROL:
   // - ADMIN has access to all tabs
-  // - ATENDENTE has access to 'agendas', 'clinics' (Minha Carteira), and 'profile' (BLOCKED from leads, users, overview)
-  // - USUARIO has access ONLY to 'profile'
+  // - ATENDENTE has access to 'agendas', 'clinics', 'chat', 'support', and 'profile'
+  // - USUARIO has access to 'profile', 'chat', and 'support'
   useEffect(() => {
     if (!currentUser) return;
-    if (currentUser.role === 'USUARIO' && currentTab !== 'profile') {
+    if (currentUser.role === 'USUARIO' && !['profile', 'chat', 'support'].includes(currentTab)) {
       setCurrentTab('profile');
     } else if (
       currentUser.role === 'ATENDENTE' &&
-      !['agendas', 'clinics', 'profile'].includes(currentTab)
+      !['agendas', 'clinics', 'profile', 'chat', 'support'].includes(currentTab)
     ) {
       setCurrentTab('agendas');
     }
@@ -327,6 +425,10 @@ export function App() {
         return 'Gestão de Agendas dos Clientes';
       case 'leads':
         return 'Gestão de Leads & Prospecção';
+      case 'chat':
+        return 'Chat Interno da Plataforma';
+      case 'support':
+        return 'Central de Suporte DunaCRM';
       case 'profile':
         return 'Meus Dados';
       default:
@@ -471,6 +573,62 @@ export function App() {
       return next;
     });
     addToast('info', 'Sessão encerrada', 'Você saiu da plataforma com segurança.');
+  };
+
+  // ---------------- NOTIFICATIONS HANDLERS ---------------- //
+  const handleMarkNotificationAsRead = async (id: string) => {
+    if (!currentUser) return;
+    await markNotificationAsRead(id, currentUser.id);
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+    );
+  };
+
+  const handleMarkAllNotificationsAsRead = async () => {
+    if (!currentUser) return;
+    const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id);
+    await markAllNotificationsAsRead(unreadIds, currentUser.id);
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  };
+
+  const handleCreateBroadcastNotification = async (input: CreateNotificationInput) => {
+    try {
+      const created = await createBroadcastNotification(input);
+      addToast('success', 'Comunicado disparado!', 'A notificação foi entregue aos destinatários.');
+      setNotifications((prev) => [created, ...prev]);
+    } catch (err: any) {
+      addToast('error', 'Falha ao disparar comunicado', err?.message || 'Tente novamente.');
+    }
+  };
+
+  // ---------------- SUPPORT TICKETS HANDLERS ---------------- //
+  const handleCreateTicket = async (input: CreateTicketInput) => {
+    try {
+      const newTicket = await createTicketInSupabase(input, enrichedUsers);
+      setTickets((prev) => [newTicket, ...prev]);
+      addToast(
+        'success',
+        `Chamado ${newTicket.ticketNumber} aberto!`,
+        `SLA iniciado com prazo de ${newTicket.slaHours} horas.`
+      );
+    } catch (err: any) {
+      addToast('error', 'Falha ao abrir chamado', err?.message || 'Tente novamente.');
+    }
+  };
+
+  const handleUpdateTicketStatus = async (ticketId: string, newStatus: TicketStatus) => {
+    try {
+      await updateTicketStatusInSupabase(ticketId, newStatus);
+      setTickets((prev) =>
+        prev.map((t) => (t.id === ticketId ? { ...t, status: newStatus } : t))
+      );
+      setSelectedTicketForDetail((prev) =>
+        prev?.id === ticketId ? { ...prev, status: newStatus } : prev
+      );
+      addToast('success', 'Status atualizado!', `Chamado atualizado para ${newStatus}.`);
+    } catch (err: any) {
+      addToast('error', 'Falha ao atualizar status', err?.message || 'Tente novamente.');
+    }
   };
 
   // ---------------- USER ADMIN HANDLERS ---------------- //
@@ -829,6 +987,8 @@ export function App() {
       {/* Top Header */}
       <Header
         currentUser={currentUser}
+        notificationCount={notifications.filter((n) => !n.isRead).length}
+        onOpenNotifications={() => setIsNotificationDrawerOpen(true)}
         onOpenCreateModal={() => setIsCreateModalOpen(true)}
         onToggleSidebarMobile={() => setIsMobileSidebarOpen(true)}
         onLogout={handleLogout}
@@ -1023,6 +1183,23 @@ export function App() {
                 />
               )}
 
+              {currentTab === 'chat' && (
+                <ChatView
+                  currentUser={currentUser}
+                  allUsers={enrichedUsers}
+                  onlineUserIds={onlineUserIds}
+                />
+              )}
+
+              {currentTab === 'support' && (
+                <TicketList
+                  tickets={tickets}
+                  currentUser={currentUser}
+                  onOpenCreateModal={() => setIsTicketCreateModalOpen(true)}
+                  onViewTicket={(t) => setSelectedTicketForDetail(t)}
+                />
+              )}
+
               {currentTab === 'profile' && (
                 <MyProfile currentUser={currentUser} onUpdateProfile={handleUpdateProfile} />
               )}
@@ -1030,6 +1207,45 @@ export function App() {
           )}
         </main>
       </div>
+
+      {/* Drawer: Central de Notificações */}
+      <NotificationDrawer
+        isOpen={isNotificationDrawerOpen}
+        onClose={() => setIsNotificationDrawerOpen(false)}
+        notifications={notifications}
+        onMarkAsRead={handleMarkNotificationAsRead}
+        onMarkAllAsRead={handleMarkAllNotificationsAsRead}
+        onOpenBroadcastModal={() => setIsBroadcastModalOpen(true)}
+        isAdmin={currentUser.role === 'ADMIN'}
+      />
+
+      {/* Modal: Disparar Comunicado pelo Admin */}
+      <BroadcastNotificationModal
+        isOpen={isBroadcastModalOpen}
+        onClose={() => setIsBroadcastModalOpen(false)}
+        onSubmit={handleCreateBroadcastNotification}
+        users={enrichedUsers}
+        currentUserId={currentUser.id}
+      />
+
+      {/* Modal: Criar Chamado de Suporte com SLA */}
+      <TicketCreateModal
+        isOpen={isTicketCreateModalOpen}
+        onClose={() => setIsTicketCreateModalOpen(false)}
+        onSubmit={handleCreateTicket}
+        users={enrichedUsers}
+        currentUserId={currentUser.id}
+      />
+
+      {/* Modal: Detalhes do Chamado */}
+      <TicketDetailModal
+        ticket={selectedTicketForDetail}
+        isOpen={!!selectedTicketForDetail}
+        onClose={() => setSelectedTicketForDetail(null)}
+        onUpdateStatus={handleUpdateTicketStatus}
+        users={enrichedUsers}
+        currentUserId={currentUser.id}
+      />
 
       {/* Modal: Cadastrar Novo Usuário por Admin */}
       <Modal

@@ -10,9 +10,20 @@ import {
   Lock,
   CalendarCheck,
   Briefcase,
+  MessageSquare,
+  LifeBuoy,
 } from 'lucide-react';
 
-export type NavTab = 'overview' | 'users' | 'clinics' | 'portfolio' | 'agendas' | 'leads' | 'profile';
+export type NavTab =
+  | 'overview'
+  | 'users'
+  | 'clinics'
+  | 'portfolio'
+  | 'agendas'
+  | 'leads'
+  | 'chat'
+  | 'support'
+  | 'profile';
 
 interface SidebarProps {
   currentTab: NavTab;
@@ -74,6 +85,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Target,
       allowedRoles: ['ADMIN'] as UserRole[],
       description: 'Captação e funil comercial',
+    },
+    {
+      id: 'chat' as NavTab,
+      label: 'Chat Interno',
+      icon: MessageSquare,
+      allowedRoles: ['ADMIN', 'ATENDENTE', 'USUARIO'] as UserRole[],
+      description: 'Conversas em grupo e 1 a 1',
+    },
+    {
+      id: 'support' as NavTab,
+      label: 'Suporte & Chamados',
+      icon: LifeBuoy,
+      allowedRoles: ['ADMIN', 'ATENDENTE', 'USUARIO'] as UserRole[],
+      description: 'Abertura de chamados com SLA',
     },
     {
       id: 'profile' as NavTab,

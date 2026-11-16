@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { User } from '../../types/user';
 import { RoleBadge } from '../common/Badge';
+import { NotificationBell } from '../notifications/NotificationBell';
 import {
   Menu,
   ChevronDown,
@@ -11,6 +12,8 @@ import {
 
 interface HeaderProps {
   currentUser: User;
+  notificationCount?: number;
+  onOpenNotifications?: () => void;
   onOpenCreateModal?: () => void;
   onToggleSidebarMobile: () => void;
   onLogout: () => void;
@@ -19,6 +22,8 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   currentUser,
+  notificationCount = 0,
+  onOpenNotifications,
   onToggleSidebarMobile,
   onLogout,
   onGoToProfile,
@@ -49,8 +54,15 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Right: Quick actions & User Profile Menu */}
-      <div className="flex items-center gap-2 sm:gap-4">
+      {/* Right: Notification Bell & User Profile Menu */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {onOpenNotifications && (
+          <NotificationBell
+            unreadCount={notificationCount}
+            onClick={onOpenNotifications}
+          />
+        )}
+
         {/* User Profile Dropdown */}
         <div className="relative">
           <button
