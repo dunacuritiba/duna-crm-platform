@@ -20,11 +20,19 @@ interface TicketListProps {
 
 export const TicketList: React.FC<TicketListProps> = ({
   tickets,
+  currentUser,
   onOpenCreateModal,
   onViewTicket,
 }) => {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | TicketStatus | 'SLA_RISK'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | TicketStatus | 'SLA_RISK' | 'MENTIONED'>('ALL');
+
+  const mentionedCount = useMemo(() => {
+    if (!currentUser?.id) return 0;
+    return tickets.filter(
+      (t) => t.status !== 'RESOLVIDO' && t.status !== 'FECHADO' && t.mentionedUserIds?.includes(currentUser.id)
+    ).length;
+  }, [tickets, currentUser?.id]);
 
   const filteredTickets = useMemo(() => {
     return tickets.filter((t) => {
@@ -37,13 +45,16 @@ export const TicketList: React.FC<TicketListProps> = ({
       if (!matchSearch) return false;
 
       if (statusFilter === 'ALL') return true;
+      if (statusFilter === 'MENTIONED') {
+        return t.mentionedUserIds?.includes(currentUser?.id || '');
+      }
       if (statusFilter === 'SLA_RISK') {
         const sla = calculateSlaInfo(t.slaDeadline, t.createdAt);
         return (sla.status === 'AT_RISK' || sla.status === 'EXPIRED') && t.status !== 'RESOLVIDO' && t.status !== 'FECHADO';
       }
       return t.status === statusFilter;
     });
-  }, [tickets, search, statusFilter]);
+  }, [tickets, search, statusFilter, currentUser?.id]);
 
   const renderStatusBadge = (status: TicketStatus) => {
     switch (status) {
@@ -236,6 +247,29 @@ export const TicketList: React.FC<TicketListProps> = ({
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
             SLA em Risco / Vencido
           </button>
+
+          {currentUser && (
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'MENTIONED' ? 'ALL' : 'MENTIONED')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+                statusFilter === 'MENTIONED'
+                  ? 'bg-amber-600 text-white font-bold shadow-2xs'
+                  : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+              }`}
+            >
+              <span className="font-black text-xs">@</span>
+              Marcados para Mim
+              {mentionedCount > 0 && (
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    statusFilter === 'MENTIONED' ? 'bg-amber-700 text-white' : 'bg-amber-200 text-amber-900'
+                  }`}
+                >
+                  {mentionedCount}
+                </span>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -277,6 +311,12 @@ export const TicketList: React.FC<TicketListProps> = ({
                           <span className="font-bold text-slate-800 group-hover:text-indigo-600 transition truncate max-w-sm">
                             {ticket.title}
                           </span>
+                          {currentUser?.id && ticket.mentionedUserIds?.includes(currentUser.id) && (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
+                              <span className="font-black text-[9px]">@</span>
+                              Marcado
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
                           <span>Por {ticket.creator?.name || 'Membro'}</span>
@@ -354,9 +394,17 @@ export const TicketList: React.FC<TicketListProps> = ({
               className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3 cursor-pointer"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
-                  {ticket.ticketNumber}
-                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+                    {ticket.ticketNumber}
+                  </span>
+                  {currentUser?.id && ticket.mentionedUserIds?.includes(currentUser.id) && (
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
+                      <span className="font-black text-[9px]">@</span>
+                      Marcado
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-1.5">
                   {renderPriorityBadge(ticket.priority)}
                   {renderStatusBadge(ticket.status)}

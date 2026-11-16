@@ -31,6 +31,8 @@ interface SidebarProps {
   userRole: UserRole;
   isMobileOpen: boolean;
   onCloseMobile: () => void;
+  chatUnreadCount?: number;
+  ticketMentionCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -39,6 +41,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   userRole,
   isMobileOpen,
   onCloseMobile,
+  chatUnreadCount = 0,
+  ticketMentionCount = 0,
 }) => {
   const isAdmin = userRole === 'ADMIN';
   const isAttendant = userRole === 'ATENDENTE';
@@ -169,6 +173,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-indigo-600' : ''}`} />
                     <span className="truncate">{item.label}</span>
                   </div>
+
+                  {/* Badge for Chat */}
+                  {item.id === 'chat' && chatUnreadCount > 0 && (
+                    <span
+                      className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-600 text-white min-w-4.5 shadow-2xs leading-none"
+                      title={`${chatUnreadCount} mensagens não lidas no chat`}
+                    >
+                      {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                    </span>
+                  )}
+
+                  {/* Badge for Support (Tickets where user is mentioned) */}
+                  {item.id === 'support' && ticketMentionCount > 0 && (
+                    <span
+                      className="ml-auto inline-flex items-center justify-center gap-0.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-white min-w-5 shadow-2xs leading-none"
+                      title={`${ticketMentionCount} chamado(s) onde você foi marcado`}
+                    >
+                      <span className="text-[9px] font-black">@</span>
+                      <span>{ticketMentionCount > 9 ? '9+' : ticketMentionCount}</span>
+                    </span>
+                  )}
 
                   {isLocked && (
                     <span className="text-[10px] font-semibold text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded flex items-center gap-1">

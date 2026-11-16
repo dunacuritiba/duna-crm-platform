@@ -242,3 +242,57 @@ export async function createGroupChannel(
 
   return mapDbToChannel(channel);
 }
+
+/**
+ * Fetch unread message counts per channel for a given user
+ */
+export async function fetchUnreadMessageCounts(
+  userId: string
+): Promise<Record<string, number>> {
+  try {
+    // 1. Fetch user's channels (both groups and direct memberships)
+    const { data: memberships } = await supabase
+      .from('crm_chat_members')
+      .select('channel_id')
+      .eq('user_id', userId);
+
+    const { data: groups } = await supabase
+      .from('crm_chat_channels')
+      .select('id')
+      .eq('is_group', true);
+
+    const channelIds = Array.from(
+      new Set([
+        ...(memberships || []).map((m: any) => m.channel_id),
+        ...(groups || []).map((g: any) => g.id),
+      ])
+    );
+
+    if (channelIds.length === 0) return {};
+
+    // 2. Fetch recent messages not sent by this user
+    const { data: messages, error } = await supabase
+      .from('crm_chat_messages')
+      .select('id, channel_id, created_at, sender_id')
+      .in('channel_id', channelIds)
+      .neq('sender_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (error || !messages) return {};
+
+    const counts: Record<string, number> = {};
+    for (const msg of messages) {
+      const readKey = `duna_chat_read_${userId}_${msg.channel_id}`;
+      const lastRead = localStorage.getItem(readKey);
+      if (!lastRead || new Date(msg.created_at) > new Date(lastRead)) {
+        counts[msg.channel_id] = (counts[msg.channel_id] || 0) + 1;
+      }
+    }
+
+    return counts;
+  } catch (err) {
+    console.warn('Erro ao calcular contadores de chat não lidos:', err);
+    return {};
+  }
+}

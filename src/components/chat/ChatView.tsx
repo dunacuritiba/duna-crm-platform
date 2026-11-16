@@ -26,9 +26,17 @@ interface ChatViewProps {
   currentUser: User;
   allUsers: User[];
   onlineUserIds?: Set<string>;
+  chatUnreadCounts?: Record<string, number>;
+  onMarkChannelAsRead?: (channelId: string) => void;
 }
 
-export const ChatView: React.FC<ChatViewProps> = ({ currentUser, allUsers, onlineUserIds }) => {
+export const ChatView: React.FC<ChatViewProps> = ({
+  currentUser,
+  allUsers,
+  onlineUserIds,
+  chatUnreadCounts = {},
+  onMarkChannelAsRead,
+}) => {
   const [channels, setChannels] = useState<ChatChannel[]>([]);
   const [activeChannel, setActiveChannel] = useState<ChatChannel | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -39,6 +47,13 @@ export const ChatView: React.FC<ChatViewProps> = ({ currentUser, allUsers, onlin
   const [isMobileListOpen, setIsMobileListOpen] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Automatically mark active channel as read
+  useEffect(() => {
+    if (activeChannel && onMarkChannelAsRead) {
+      onMarkChannelAsRead(activeChannel.id);
+    }
+  }, [activeChannel?.id, onMarkChannelAsRead]);
 
   // Load channels on mount
   useEffect(() => {
@@ -224,6 +239,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ currentUser, allUsers, onlin
             <div className="mt-1 space-y-0.5">
               {filteredGroupChannels.map((channel) => {
                 const isActive = activeChannel?.id === channel.id;
+                const unread = chatUnreadCounts[channel.id] || 0;
 
                 return (
                   <button
@@ -231,6 +247,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ currentUser, allUsers, onlin
                     onClick={() => {
                       setActiveChannel(channel);
                       setIsMobileListOpen(false);
+                      onMarkChannelAsRead?.(channel.id);
                     }}
                     className={`w-full px-3 py-2 rounded-xl text-left transition flex items-center justify-between group ${
                       isActive
@@ -247,15 +264,22 @@ export const ChatView: React.FC<ChatViewProps> = ({ currentUser, allUsers, onlin
                       <span className="text-xs truncate">{channel.name}</span>
                     </div>
 
-                    {channel.department && (
-                      <span
-                        className={`text-[9px] uppercase px-1.5 py-0.2 rounded font-semibold ${
-                          isActive ? 'bg-indigo-700/60 text-white' : 'bg-slate-200/70 text-slate-600'
-                        }`}
-                      >
-                        {channel.department}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {unread > 0 && !isActive && (
+                        <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-600 text-white shadow-2xs">
+                          {unread > 9 ? '9+' : unread}
+                        </span>
+                      )}
+                      {channel.department && (
+                        <span
+                          className={`text-[9px] uppercase px-1.5 py-0.2 rounded font-semibold ${
+                            isActive ? 'bg-indigo-700/60 text-white' : 'bg-slate-200/70 text-slate-600'
+                          }`}
+                        >
+                          {channel.department}
+                        </span>
+                      )}
+                    </div>
                   </button>
                 );
               })}
@@ -280,6 +304,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ currentUser, allUsers, onlin
                   const isActive = activeChannel?.id === channel.id;
                   const otherUser = channel.otherUser;
                   const online = otherUser ? isUserOnline(otherUser, currentUser.id, onlineUserIds) : false;
+                  const unread = chatUnreadCounts[channel.id] || 0;
 
                   return (
                     <button
@@ -287,6 +312,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ currentUser, allUsers, onlin
                       onClick={() => {
                         setActiveChannel(channel);
                         setIsMobileListOpen(false);
+                        onMarkChannelAsRead?.(channel.id);
                       }}
                       className={`w-full px-3 py-2 rounded-xl text-left transition flex items-center justify-between group ${
                         isActive
@@ -326,13 +352,21 @@ export const ChatView: React.FC<ChatViewProps> = ({ currentUser, allUsers, onlin
                         </div>
                       </div>
 
-                      {online && (
-                        <span
-                          className={`w-2 h-2 rounded-full shrink-0 ${
-                            isActive ? 'bg-white' : 'bg-emerald-500'
-                          }`}
-                        />
-                      )}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {unread > 0 && !isActive && (
+                          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-600 text-white shadow-2xs">
+                            {unread > 9 ? '9+' : unread}
+                          </span>
+                        )}
+                        {online && (
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              isActive ? 'bg-white' : 'bg-emerald-500'
+                            }`}
+                            title="Online"
+                          />
+                        )}
+                      </div>
                     </button>
                   );
                 })

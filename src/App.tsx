@@ -61,6 +61,7 @@ import {
   createTicketInSupabase,
   updateTicketStatusInSupabase,
 } from './services/ticketService';
+import { fetchUnreadMessageCounts } from './services/chatService';
 import { supabase } from './services/supabase';
 import { Header } from './components/layout/Header';
 import { Sidebar, type NavTab } from './components/layout/Sidebar';
@@ -149,6 +150,21 @@ export function App() {
   const [isTicketCreateModalOpen, setIsTicketCreateModalOpen] = useState(false);
   const [selectedTicketForDetail, setSelectedTicketForDetail] = useState<Ticket | null>(null);
 
+  // Chat unread count state
+  const [chatUnreadCounts, setChatUnreadCounts] = useState<Record<string, number>>({});
+
+  const handleMarkChannelAsRead = useCallback((channelId: string) => {
+    setChatUnreadCounts((prev) => {
+      if (!prev[channelId]) return prev;
+      const next = { ...prev };
+      delete next[channelId];
+      return next;
+    });
+    try {
+      localStorage.setItem(`duna_chat_read_${currentUserIdState}_${channelId}`, new Date().toISOString());
+    } catch {}
+  }, [currentUserIdState]);
+
   // Toasts state
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -231,6 +247,17 @@ export function App() {
     }
   }, []);
 
+  // Load chat unread message counts
+  const loadChatUnreads = useCallback(async (userId?: string) => {
+    if (!userId) return;
+    try {
+      const counts = await fetchUnreadMessageCounts(userId);
+      setChatUnreadCounts(counts);
+    } catch (err: any) {
+      console.warn('Falha ao carregar mensagens não lidas:', err);
+    }
+  }, []);
+
   // Load users from Supabase duna-flow
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
@@ -273,8 +300,9 @@ export function App() {
     const activeUser = usersRef.current.find((u) => u.id === currentUserIdState);
     if (!activeUser) return;
 
-    // Load initial notifications for current user
+    // Load initial notifications & chat unread counts for current user
     loadNotifications(activeUser.id, activeUser.role);
+    loadChatUnreads(activeUser.id);
 
     // 1. Subscribe to Realtime Presence Channel (instant join/leave events across all clients)
     const unsubscribePresence = subscribeToOnlinePresence(
@@ -336,7 +364,25 @@ export function App() {
       )
       .subscribe();
 
-    // 5. Periodic heartbeat for database persistence (every 45s)
+    // 5. Real-time Chat Messages subscription for badge
+    const chatSub = supabase
+      .channel('crm_chat_messages_realtime_badge')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'crm_chat_messages' },
+        (payload) => {
+          const newMsg = payload.new;
+          if (newMsg && newMsg.sender_id !== activeUser.id) {
+            setChatUnreadCounts((prev) => ({
+              ...prev,
+              [newMsg.channel_id]: (prev[newMsg.channel_id] || 0) + 1,
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    // 6. Periodic heartbeat for database persistence (every 45s)
     updateUserPresence(activeUser.id);
     const interval = setInterval(() => {
       updateUserPresence(activeUser.id);
@@ -349,6 +395,7 @@ export function App() {
       unsubscribeDb();
       supabase.removeChannel(notifSub);
       supabase.removeChannel(ticketSub);
+      supabase.removeChannel(chatSub);
     };
   }, [isAuthenticated, currentUserIdState]);
 
@@ -390,6 +437,21 @@ export function App() {
       };
     });
   }, [users, clinics, currentUserIdState, onlineUserIds]);
+
+  // Badges calculations: Chat unread messages & Tickets where current user is mentioned
+  const totalChatUnreadCount = useMemo(() => {
+    return Object.values(chatUnreadCounts).reduce((acc, count) => acc + count, 0);
+  }, [chatUnreadCounts]);
+
+  const ticketMentionCount = useMemo(() => {
+    if (!currentUserIdState) return 0;
+    return tickets.filter(
+      (t) =>
+        t.status !== 'RESOLVIDO' &&
+        t.status !== 'FECHADO' &&
+        t.mentionedUserIds?.includes(currentUserIdState)
+    ).length;
+  }, [tickets, currentUserIdState]);
 
   // STRICT ACCESS CONTROL:
   // - ADMIN has access to all tabs
@@ -1009,6 +1071,8 @@ export function App() {
           userRole={currentUser.role}
           isMobileOpen={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          chatUnreadCount={totalChatUnreadCount}
+          ticketMentionCount={ticketMentionCount}
         />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">
@@ -1194,6 +1258,8 @@ export function App() {
                   currentUser={currentUser}
                   allUsers={enrichedUsers}
                   onlineUserIds={onlineUserIds}
+                  chatUnreadCounts={chatUnreadCounts}
+                  onMarkChannelAsRead={handleMarkChannelAsRead}
                 />
               )}
 

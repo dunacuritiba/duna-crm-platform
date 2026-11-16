@@ -115,6 +115,26 @@ export async function createTicketInSupabase(
     .single();
 
   if (error) throw error;
+
+  // Dispatch notifications to mentioned users
+  if (input.mentionedUserIds && input.mentionedUserIds.length > 0) {
+    const creator = allUsers.find((u) => u.id === input.creatorId);
+    const notificationsToInsert = input.mentionedUserIds
+      .filter((uid) => uid !== input.creatorId)
+      .map((uid) => ({
+        title: `Marcado no chamado ${ticketNumber}`,
+        message: `${creator?.name || 'Um colega'} marcou você no chamado: "${input.title.trim()}".`,
+        type: input.priority === 'CRITICA' ? 'URGENTE' : 'INFO',
+        target_type: 'USER',
+        target_user_id: uid,
+        created_by: input.creatorId,
+      }));
+
+    if (notificationsToInsert.length > 0) {
+      await supabase.from('crm_notifications').insert(notificationsToInsert);
+    }
+  }
+
   return mapDbToTicket(data, allUsers);
 }
 
@@ -186,11 +206,42 @@ export async function addTicketCommentInSupabase(
 
   if (error) throw error;
 
-  // Touch ticket updated_at
+  // Touch ticket updated_at and merge mentioned users if any
+  const { data: currentTicket } = await supabase
+    .from('crm_tickets')
+    .select('ticket_number, title, mentioned_user_ids')
+    .eq('id', input.ticketId)
+    .single();
+
+  const existingMentions = currentTicket?.mentioned_user_ids || [];
+  const mergedMentions = Array.from(new Set([...existingMentions, ...(input.mentionedUserIds || [])]));
+
   await supabase
     .from('crm_tickets')
-    .update({ updated_at: new Date().toISOString() })
+    .update({
+      mentioned_user_ids: mergedMentions,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', input.ticketId);
+
+  // Send notifications to users mentioned in the comment
+  if (input.mentionedUserIds && input.mentionedUserIds.length > 0) {
+    const author = allUsers.find((u) => u.id === input.authorId);
+    const notificationsToInsert = input.mentionedUserIds
+      .filter((uid) => uid !== input.authorId)
+      .map((uid) => ({
+        title: `Citado no chamado ${currentTicket?.ticket_number || ''}`,
+        message: `${author?.name || 'Um colega'} citou você em uma resposta do chamado: "${currentTicket?.title || ''}".`,
+        type: 'INFO',
+        target_type: 'USER',
+        target_user_id: uid,
+        created_by: input.authorId,
+      }));
+
+    if (notificationsToInsert.length > 0) {
+      await supabase.from('crm_notifications').insert(notificationsToInsert);
+    }
+  }
 
   return mapDbToComment(data, allUsers);
 }
