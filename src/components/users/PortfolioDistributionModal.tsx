@@ -3,6 +3,7 @@ import type { User } from '../../types/user';
 import type { MedicalClinic } from '../../types/clinic';
 import { Modal } from '../common/Modal';
 import { saveAttendantPortfolio } from '../../services/portfolioService';
+import { isClinicContractActive } from '../../utils/contract';
 import {
   Briefcase,
   Search,
@@ -37,30 +38,45 @@ export const PortfolioDistributionModal: React.FC<PortfolioDistributionModalProp
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Initialize selected clinics from attendant's current assigned clinics
+  // Filter strictly for clinics with an active/valid contract (CONTRATO VIGENTE)
+  const eligibleClinics = useMemo(() => {
+    return allClinics.filter((c) =>
+      isClinicContractActive(c.status, c.contractStatus, c.contractEndDate)
+    );
+  }, [allClinics]);
+
+  const nonEligibleCount = allClinics.length - eligibleClinics.length;
+
+  // Initialize selected clinics from attendant's current assigned clinics (only active contracts)
   useEffect(() => {
     if (attendant && isOpen) {
-      const assigned = allClinics
+      const eligibleIds = new Set(eligibleClinics.map((c) => c.id));
+      const assigned = eligibleClinics
         .filter((c) => c.assignedAttendantId === attendant.id)
         .map((c) => c.id);
 
-      // Merge with any IDs in attendant.assignedClinicIds
-      const combined = Array.from(new Set([...assigned, ...(attendant.assignedClinicIds || [])]));
+      // Merge with any IDs in attendant.assignedClinicIds, keeping strictly eligible ones
+      const combined = Array.from(
+        new Set([
+          ...assigned,
+          ...(attendant.assignedClinicIds || []).filter((id) => eligibleIds.has(id)),
+        ])
+      );
       setSelectedClinicIds(combined);
       setSearch('');
       setFilterMode('ALL');
       setErrorMessage(null);
     }
-  }, [attendant, allClinics, isOpen]);
+  }, [attendant, eligibleClinics, isOpen]);
 
   if (!attendant) return null;
 
   // Map of clinicId to assigned attendant's name if not the current attendant
   const usersMap = new Map(allUsers.map((u) => [u.id, u.name]));
 
-  // Filtered clinics
+  // Filtered clinics (only among eligible active contract clinics)
   const filteredClinics = useMemo(() => {
-    return allClinics.filter((c) => {
+    return eligibleClinics.filter((c) => {
       const matchSearch =
         c.companyName.toLowerCase().includes(search.toLowerCase()) ||
         (c.tradeName && c.tradeName.toLowerCase().includes(search.toLowerCase())) ||
@@ -78,9 +94,15 @@ export const PortfolioDistributionModal: React.FC<PortfolioDistributionModalProp
 
       return matchSearch && matchFilter;
     });
-  }, [allClinics, search, filterMode, selectedClinicIds]);
+  }, [eligibleClinics, search, filterMode, selectedClinicIds]);
 
   const toggleClinic = (clinicId: string) => {
+    // Only toggle if clinic has an active contract
+    const target = eligibleClinics.find((c) => c.id === clinicId);
+    if (!target) {
+      setErrorMessage('Esta clínica não possui contrato vigente e não pode ser adicionada à carteira.');
+      return;
+    }
     setSelectedClinicIds((prev) =>
       prev.includes(clinicId) ? prev.filter((id) => id !== clinicId) : [...prev, clinicId]
     );
@@ -99,6 +121,21 @@ export const PortfolioDistributionModal: React.FC<PortfolioDistributionModalProp
     try {
       setIsSaving(true);
       setErrorMessage(null);
+
+      // Final business rule validation before saving
+      const hasInvalidClinic = selectedClinicIds.some((id) => {
+        const c = allClinics.find((item) => item.id === id);
+        return !c || !isClinicContractActive(c.status, c.contractStatus, c.contractEndDate);
+      });
+
+      if (hasInvalidClinic) {
+        setErrorMessage(
+          'Regra de Negócio: Apenas clínicas com contrato vigente podem ser distribuídas para a carteira de atendentes.'
+        );
+        setIsSaving(false);
+        return;
+      }
+
       await saveAttendantPortfolio(attendant.id, selectedClinicIds);
       onSuccess();
       onClose();
@@ -157,6 +194,21 @@ export const PortfolioDistributionModal: React.FC<PortfolioDistributionModalProp
               {selectedClinicIds.length === 1 ? 'cliente' : 'clientes'}
             </span>
           </div>
+        </div>
+
+        {/* Contract Rule Notice */}
+        <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-emerald-950">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>
+              <strong>Regra de Carteira:</strong> Apenas clínicas com <strong>contrato vigente</strong> (clientes ativos) podem ser distribuídas.
+            </span>
+          </div>
+          {nonEligibleCount > 0 && (
+            <span className="text-[11px] font-semibold text-slate-500 bg-white/90 px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0 self-start sm:self-auto">
+              {nonEligibleCount} sem contrato vigente (ocultas)
+            </span>
+          )}
         </div>
 
         {/* Search & Filter Toolbar */}

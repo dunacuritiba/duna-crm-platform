@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { User, CreateUserInput, SignUpInput, UpdateUserProfileInput, UpdateUserInput, AuthScreen } from './types/user';
 import type { MedicalClinic, CreateClinicInput, CreateClinicMemberInput } from './types/clinic';
 import type { Lead, CreateLeadInput, LeadStatus } from './types/lead';
@@ -41,6 +41,7 @@ import {
   updateAppointmentStatusInSupabase,
   deleteAppointmentInSupabase,
 } from './services/appointmentService';
+import { isClinicContractActive } from './utils/contract';
 import { Header } from './components/layout/Header';
 import { Sidebar, type NavTab } from './components/layout/Sidebar';
 import { Overview } from './components/dashboard/Overview';
@@ -193,6 +194,19 @@ export function App() {
 
   // Current active user
   const currentUser = users.find((u) => u.id === currentUserIdState);
+
+  // Enriched users with dynamically calculated active contract portfolio count
+  const enrichedUsers = useMemo(() => {
+    return users.map((u) => {
+      if (u.role !== 'ATENDENTE') return u;
+      const activeCount = clinics.filter(
+        (c) =>
+          isClinicContractActive(c.status, c.contractStatus, c.contractEndDate) &&
+          (c.assignedAttendantId === u.id || u.assignedClinicIds?.includes(c.id))
+      ).length;
+      return { ...u, assignedClinicsCount: activeCount };
+    });
+  }, [users, clinics]);
 
   // STRICT ACCESS CONTROL:
   // - ADMIN has access to all tabs
@@ -767,7 +781,7 @@ export function App() {
 
           {currentTab === 'users' && currentUser.role === 'ADMIN' && (
             <UserList
-              users={users}
+              users={enrichedUsers}
               currentUserId={currentUser.id}
               onOpenCreateModal={() => setIsCreateModalOpen(true)}
               onToggleStatus={handleToggleStatus}
@@ -790,8 +804,9 @@ export function App() {
                   currentUser.role === 'ATENDENTE'
                     ? clinics.filter(
                         (c) =>
-                          c.assignedAttendantId === currentUser.id ||
-                          currentUser.assignedClinicIds?.includes(c.id)
+                          isClinicContractActive(c.status, c.contractStatus, c.contractEndDate) &&
+                          (c.assignedAttendantId === currentUser.id ||
+                            currentUser.assignedClinicIds?.includes(c.id))
                       )
                     : clinics
                 }
@@ -813,7 +828,7 @@ export function App() {
 
           {currentTab === 'portfolio' && currentUser.role === 'ADMIN' && (
             <PortfolioManager
-              users={users}
+              users={enrichedUsers}
               clinics={clinics}
               onOpenPortfolioModal={(attendant) => {
                 setSelectedUserForPortfolio(attendant);
@@ -899,7 +914,7 @@ export function App() {
       <PortfolioDistributionModal
         attendant={selectedUserForPortfolio}
         allClinics={clinics}
-        allUsers={users}
+        allUsers={enrichedUsers}
         isOpen={isPortfolioModalOpen}
         onClose={() => {
           setIsPortfolioModalOpen(false);

@@ -1,7 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import type { User } from '../../types/user';
 import type { MedicalClinic } from '../../types/clinic';
-import { getLiveContractStatus, getContractStatusBadgeClass } from '../../utils/contract';
+import {
+  getLiveContractStatus,
+  getContractStatusBadgeClass,
+  isClinicContractActive,
+} from '../../utils/contract';
 import { saveAttendantPortfolio } from '../../services/portfolioService';
 import {
   Briefcase,
@@ -11,6 +15,7 @@ import {
   Search,
   AlertCircle,
   Calendar,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface PortfolioManagerProps {
@@ -38,36 +43,50 @@ export const PortfolioManager: React.FC<PortfolioManagerProps> = ({
     return users.filter((u) => u.role === 'ATENDENTE' && u.status === 'ATIVO');
   }, [users]);
 
-  // Portfolio metrics
+  // Strictly filter clinics with active, valid contracts (CONTRATO VIGENTE)
+  const eligibleClinics = useMemo(() => {
+    return clinics.filter((c) =>
+      isClinicContractActive(c.status, c.contractStatus, c.contractEndDate)
+    );
+  }, [clinics]);
+
+  const nonEligibleCount = clinics.length - eligibleClinics.length;
+
+  // Portfolio metrics (computed only over eligible clinics with active contracts)
   const metrics = useMemo(() => {
-    const totalClinics = clinics.length;
-    const assignedClinics = clinics.filter((c) => !!c.assignedAttendantId).length;
+    const totalClinics = eligibleClinics.length;
+    const assignedClinics = eligibleClinics.filter((c) => !!c.assignedAttendantId).length;
     const unassignedClinics = totalClinics - assignedClinics;
     const totalAttendants = attendants.length;
 
     return { totalClinics, assignedClinics, unassignedClinics, totalAttendants };
-  }, [clinics, attendants]);
+  }, [eligibleClinics, attendants]);
 
-  // Unassigned clinics
+  // Unassigned clinics (only eligible clinics with active contracts)
   const unassignedClinicsList = useMemo(() => {
-    return clinics.filter((c) => !c.assignedAttendantId);
-  }, [clinics]);
+    return eligibleClinics.filter((c) => !c.assignedAttendantId);
+  }, [eligibleClinics]);
 
   // Quick single assign handler
   const handleQuickAssign = async (clinicId: string, attendantId: string) => {
     if (!attendantId) return;
+    const target = clinics.find((c) => c.id === clinicId);
+    if (!target || !isClinicContractActive(target.status, target.contractStatus, target.contractEndDate)) {
+      alert('Esta clínica não possui contrato vigente e não pode ser distribuída para a carteira.');
+      return;
+    }
     try {
       setAssigningClinicId(clinicId);
       // Fetch current clinics for that attendant and add this one
-      const currentIds = clinics
+      const currentIds = eligibleClinics
         .filter((c) => c.assignedAttendantId === attendantId)
         .map((c) => c.id);
       const newIds = Array.from(new Set([...currentIds, clinicId]));
 
       await saveAttendantPortfolio(attendantId, newIds);
       await onRefresh();
-    } catch (err) {
-      console.error('Erro na atribuição rápida:', err);
+    } catch (err: any) {
+      alert(err.message || 'Erro na atribuição rápida da carteira.');
     } finally {
       setAssigningClinicId(null);
     }
@@ -112,14 +131,25 @@ export const PortfolioManager: React.FC<PortfolioManagerProps> = ({
         </button>
       </div>
 
+      {nonEligibleCount > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>
+            <strong>Regra de Carteira:</strong> {nonEligibleCount} clínica(s) sem contrato vigente (Leads, Negociações ou Vencidos) estão excluídas da distribuição de carteira.
+          </span>
+        </div>
+      )}
+
       {/* KPI Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
           <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-            Total de Clínicas
+            Clínicas Carteirizáveis
           </span>
           <p className="text-2xl font-bold text-slate-900 mt-1">{metrics.totalClinics}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Clientes cadastrados no CRM</p>
+          <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">
+            Apenas contratos vigentes
+          </p>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
@@ -239,7 +269,7 @@ export const PortfolioManager: React.FC<PortfolioManagerProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredAttendants.map((attendant) => {
-            const attendantClinics = clinics.filter(
+            const attendantClinics = eligibleClinics.filter(
               (c) =>
                 c.assignedAttendantId === attendant.id ||
                 attendant.assignedClinicIds?.includes(c.id)

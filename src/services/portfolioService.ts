@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import type { MedicalClinic } from '../types/clinic';
 import { fetchClinicsFromSupabase } from './clinicService';
+import { isClinicContractActive } from '../utils/contract';
 
 export interface AttendantPortfolioSummary {
   attendantId: string;
@@ -80,6 +81,19 @@ export async function saveAttendantPortfolio(
 
   // 3. Insert newly assigned clinics to junction table
   if (toAdd.length > 0) {
+    // Validate: only clinics with active/valid contracts can be assigned to portfolio
+    const allClinics = await fetchClinicsFromSupabase();
+    const invalidClinic = toAdd.find((id) => {
+      const c = allClinics.find((item) => item.id === id);
+      return !c || !isClinicContractActive(c.status, c.contractStatus, c.contractEndDate);
+    });
+
+    if (invalidClinic) {
+      throw new Error(
+        'Apenas clínicas com contrato vigente podem ser distribuídas para a carteira de atendentes.'
+      );
+    }
+
     const inserts = toAdd.map((clinicId) => ({
       attendant_id: attendantId,
       clinic_id: clinicId,
@@ -104,7 +118,7 @@ export async function saveAttendantPortfolio(
 }
 
 /**
- * Fetch clinics assigned to a specific attendant
+ * Fetch clinics assigned to a specific attendant (only active contracts)
  */
 export async function fetchClinicsForAttendant(attendantId: string): Promise<MedicalClinic[]> {
   const allClinics = await fetchClinicsFromSupabase();
@@ -112,6 +126,8 @@ export async function fetchClinicsForAttendant(attendantId: string): Promise<Med
   const assignedIds = assignments[attendantId] || [];
 
   return allClinics.filter(
-    (c) => assignedIds.includes(c.id) || c.assignedAttendantId === attendantId
+    (c) =>
+      isClinicContractActive(c.status, c.contractStatus, c.contractEndDate) &&
+      (assignedIds.includes(c.id) || c.assignedAttendantId === attendantId)
   );
 }
