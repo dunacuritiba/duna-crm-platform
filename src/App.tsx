@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { User, CreateUserInput, SignUpInput, UpdateUserProfileInput, AuthScreen } from './types/user';
+import type { User, CreateUserInput, SignUpInput, UpdateUserProfileInput, UpdateUserInput, AuthScreen } from './types/user';
 import type { MedicalClinic, CreateClinicInput, CreateClinicMemberInput } from './types/clinic';
+import type { Lead, CreateLeadInput, LeadStatus } from './types/lead';
+import type { Appointment, AppointmentStatus, CreateAppointmentInput } from './types/appointment';
 import {
   fetchUsersFromSupabase,
   createSupabaseUser,
@@ -25,15 +27,36 @@ import {
   deleteClinicMemberInSupabase,
   toggleClinicMemberStatusInSupabase,
 } from './services/clinicService';
+import {
+  fetchLeadsFromSupabase,
+  createLeadInSupabase,
+  updateLeadInSupabase,
+  updateLeadStatusInSupabase,
+  deleteLeadInSupabase,
+  convertLeadToClinicInSupabase,
+} from './services/leadService';
+import {
+  fetchAppointmentsFromSupabase,
+  createAppointmentInSupabase,
+  updateAppointmentStatusInSupabase,
+  deleteAppointmentInSupabase,
+} from './services/appointmentService';
 import { Header } from './components/layout/Header';
 import { Sidebar, type NavTab } from './components/layout/Sidebar';
 import { Overview } from './components/dashboard/Overview';
 import { UserList } from './components/users/UserList';
 import { UserForm } from './components/users/UserForm';
 import { UserDetailModal } from './components/users/UserDetailModal';
+import { UserEditModal } from './components/users/UserEditModal';
+import { PortfolioDistributionModal } from './components/users/PortfolioDistributionModal';
+import { PortfolioManager } from './components/portfolio/PortfolioManager';
+import { ScheduleManager } from './components/appointments/ScheduleManager';
 import { ClinicList } from './components/clinics/ClinicList';
 import { ClinicFormModal } from './components/clinics/ClinicFormModal';
 import { ClinicDetailModal } from './components/clinics/ClinicDetailModal';
+import { LeadList } from './components/leads/LeadList';
+import { LeadFormModal } from './components/leads/LeadFormModal';
+import { LeadDetailModal } from './components/leads/LeadDetailModal';
 import { MyProfile } from './components/profile/MyProfile';
 import { Modal } from './components/common/Modal';
 import { ToastContainer, type ToastMessage } from './components/common/Toast';
@@ -42,11 +65,12 @@ import { RegisterView } from './components/auth/RegisterView';
 import { VerifyOtpView } from './components/auth/VerifyOtpView';
 import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
 import { ResetPasswordView } from './components/auth/ResetPasswordView';
-import { UserPlus, RefreshCw, Building2 } from 'lucide-react';
+import { RefreshCw, Building2, Target } from 'lucide-react';
 
 export function App() {
   const [users, setUsers] = useState<User[]>([]);
   const [clinics, setClinics] = useState<MedicalClinic[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [currentUserIdState, setCurrentUserIdState] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
@@ -58,15 +82,28 @@ export function App() {
   // OTP Context for registration & recovery
   const [otpEmail, setOtpEmail] = useState<string>('');
 
+  // Appointments state
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+
   // User Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedUserForDetail, setSelectedUserForDetail] = useState<User | null>(null);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<User | null>(null);
+  const [isUserEditOpen, setIsUserEditOpen] = useState(false);
+  const [selectedUserForPortfolio, setSelectedUserForPortfolio] = useState<User | null>(null);
+  const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
 
   // Clinic Modals state
   const [isClinicFormModalOpen, setIsClinicFormModalOpen] = useState(false);
   const [selectedClinicForEdit, setSelectedClinicForEdit] = useState<MedicalClinic | null>(null);
   const [selectedClinicForDetail, setSelectedClinicForDetail] = useState<MedicalClinic | null>(null);
   const [isSubmittingClinic, setIsSubmittingClinic] = useState(false);
+
+  // Lead Modals state
+  const [isLeadFormModalOpen, setIsLeadFormModalOpen] = useState(false);
+  const [selectedLeadForEdit, setSelectedLeadForEdit] = useState<Lead | null>(null);
+  const [selectedLeadForDetail, setSelectedLeadForDetail] = useState<Lead | null>(null);
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Toasts state
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -84,6 +121,31 @@ export function App() {
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
+
+  // Load leads from Supabase
+  const loadLeads = useCallback(async () => {
+    try {
+      const data = await fetchLeadsFromSupabase();
+      setLeads(data);
+
+      setSelectedLeadForDetail((prev) => {
+        if (!prev) return null;
+        return data.find((l) => l.id === prev.id) || null;
+      });
+    } catch (err: any) {
+      console.warn('Falha ao carregar leads:', err);
+    }
+  }, []);
+
+  // Load appointments from Supabase
+  const loadAppointments = useCallback(async () => {
+    try {
+      const data = await fetchAppointmentsFromSupabase();
+      setAppointments(data);
+    } catch (err: any) {
+      console.warn('Falha ao carregar agendamentos:', err);
+    }
+  }, []);
 
   // Load clinics from Supabase
   const loadClinics = useCallback(async () => {
@@ -125,15 +187,26 @@ export function App() {
   useEffect(() => {
     loadUsers();
     loadClinics();
-  }, [loadUsers, loadClinics]);
+    loadLeads();
+    loadAppointments();
+  }, [loadUsers, loadClinics, loadLeads, loadAppointments]);
 
   // Current active user
   const currentUser = users.find((u) => u.id === currentUserIdState);
 
-  // If user is regular 'USUARIO', strictly enforce 'profile' tab!
+  // STRICT ACCESS CONTROL:
+  // - ADMIN has access to all tabs
+  // - ATENDENTE has access to 'agendas', 'clinics' (Minha Carteira), and 'profile' (BLOCKED from leads, users, overview)
+  // - USUARIO has access ONLY to 'profile'
   useEffect(() => {
-    if (currentUser && currentUser.role === 'USUARIO' && currentTab !== 'profile') {
+    if (!currentUser) return;
+    if (currentUser.role === 'USUARIO' && currentTab !== 'profile') {
       setCurrentTab('profile');
+    } else if (
+      currentUser.role === 'ATENDENTE' &&
+      !['agendas', 'clinics', 'profile'].includes(currentTab)
+    ) {
+      setCurrentTab('agendas');
     }
   }, [currentUser, currentTab]);
 
@@ -146,11 +219,15 @@ export function App() {
       const loggedUser = await loginUser(email, pass);
       await loadUsers();
       await loadClinics();
+      await loadLeads();
+      await loadAppointments();
       setCurrentUserIdState(loggedUser.id);
       setIsAuthenticated(true);
 
       if (loggedUser.role === 'USUARIO') {
         setCurrentTab('profile');
+      } else if (loggedUser.role === 'ATENDENTE') {
+        setCurrentTab('agendas');
       } else {
         setCurrentTab('users');
       }
@@ -160,6 +237,8 @@ export function App() {
         `Bem-vindo(a), ${loggedUser.name}!`,
         loggedUser.role === 'ADMIN'
           ? 'Painel Administrativo completo liberado.'
+          : loggedUser.role === 'ATENDENTE'
+          ? 'Painel da Equipe de Atendimento e Carteira liberados.'
           : 'Acesso restrito ao seu painel "Meus Dados".'
       );
     } finally {
@@ -191,6 +270,7 @@ export function App() {
       const activatedUser = await verifyRegistrationOtp(email, code);
       await loadUsers();
       await loadClinics();
+      await loadLeads();
       setCurrentUserIdState(activatedUser.id);
       setIsAuthenticated(true);
       setCurrentTab('profile');
@@ -405,6 +485,122 @@ export function App() {
     }
   };
 
+  // ---------------- LEADS HANDLERS (ADMIN ONLY) ---------------- //
+
+  const handleCreateOrUpdateLead = async (input: CreateLeadInput) => {
+    setIsSubmittingLead(true);
+    try {
+      if (selectedLeadForEdit) {
+        await updateLeadInSupabase(selectedLeadForEdit.id, input);
+        addToast('success', 'Lead atualizado!', 'Os dados do prospect foram salvos.');
+      } else {
+        await createLeadInSupabase(input);
+        addToast('success', 'Lead cadastrado com sucesso!', 'Novo prospect adicionado ao funil comercial.');
+      }
+      await loadLeads();
+      setIsLeadFormModalOpen(false);
+      setSelectedLeadForEdit(null);
+    } catch (err: any) {
+      addToast('error', 'Erro ao salvar lead', err?.message || 'Falha ao processar operação.');
+      throw err;
+    } finally {
+      setIsSubmittingLead(false);
+    }
+  };
+
+  const handleUpdateLeadStatus = async (leadId: string, status: LeadStatus, lossReason?: string) => {
+    try {
+      await updateLeadStatusInSupabase(leadId, status, lossReason);
+      await loadLeads();
+      addToast('info', 'Estágio do funil atualizado', `Lead movido para "${status}".`);
+    } catch (err: any) {
+      addToast('error', 'Erro ao atualizar estágio', err?.message);
+    }
+  };
+
+  const handleDeleteLead = async (leadId: string) => {
+    try {
+      await deleteLeadInSupabase(leadId);
+      await loadLeads();
+      addToast('info', 'Lead removido', 'O registro foi excluído do pipeline.');
+    } catch (err: any) {
+      addToast('error', 'Erro ao excluir lead', err?.message);
+    }
+  };
+
+  const handleConvertToClinic = async (lead: Lead, technicalCrm: string) => {
+    try {
+      const { clinic } = await convertLeadToClinicInSupabase(lead, technicalCrm);
+      await loadLeads();
+      await loadClinics();
+      addToast(
+        'success',
+        'Lead Convertido em Clínica!',
+        `A clínica "${clinic.companyName}" foi registrada oficialmente com CRM ${technicalCrm}.`
+      );
+    } catch (err: any) {
+      addToast('error', 'Falha na conversão', err?.message);
+      throw err;
+    }
+  };
+
+  // ---------------- USER EDIT & PORTFOLIO HANDLERS ---------------- //
+
+  const handleSaveUserEdit = async (userId: string, data: UpdateUserInput) => {
+    try {
+      await updateSupabaseUserByAdmin(userId, data);
+      await loadUsers();
+      await loadClinics();
+      addToast(
+        'success',
+        'Cadastro atualizado!',
+        'As alterações de perfil e permissões foram salvas com sucesso.'
+      );
+    } catch (err: any) {
+      addToast('error', 'Falha ao atualizar usuário', err?.message);
+      throw err;
+    }
+  };
+
+  // ---------------- APPOINTMENT HANDLERS ---------------- //
+
+  const handleCreateAppointment = async (input: CreateAppointmentInput) => {
+    try {
+      await createAppointmentInSupabase(input);
+      await loadAppointments();
+      addToast(
+        'success',
+        'Consulta agendada!',
+        `Agendamento confirmado para o paciente ${input.patientName}.`
+      );
+    } catch (err: any) {
+      addToast('error', 'Erro ao agendar consulta', err?.message);
+      throw err;
+    }
+  };
+
+  const handleUpdateAppointmentStatus = async (id: string, status: AppointmentStatus) => {
+    try {
+      await updateAppointmentStatusInSupabase(id, status);
+      await loadAppointments();
+      addToast('info', 'Status atualizado', `Agendamento alterado para ${status}.`);
+    } catch (err: any) {
+      addToast('error', 'Erro ao atualizar status', err?.message);
+      throw err;
+    }
+  };
+
+  const handleDeleteAppointment = async (id: string) => {
+    try {
+      await deleteAppointmentInSupabase(id);
+      await loadAppointments();
+      addToast('info', 'Agendamento removido', 'O registro foi excluído da agenda.');
+    } catch (err: any) {
+      addToast('error', 'Erro ao remover agendamento', err?.message);
+      throw err;
+    }
+  };
+
   // ---------------- RENDER AUTH VIEWS ---------------- //
 
   if (!isAuthenticated || !currentUser) {
@@ -498,7 +694,13 @@ export function App() {
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
                   {currentTab === 'overview' && 'Visão Geral do CRM'}
                   {currentTab === 'users' && 'Gestão de Usuários'}
-                  {currentTab === 'clinics' && 'Clínicas Médicas'}
+                  {currentTab === 'clinics' &&
+                    (currentUser.role === 'ATENDENTE'
+                      ? 'Minha Carteira de Clientes'
+                      : 'Clínicas Médicas')}
+                  {currentTab === 'portfolio' && 'Gestão de Carteiras de Clientes'}
+                  {currentTab === 'agendas' && 'Gestão de Agendas dos Clientes'}
+                  {currentTab === 'leads' && 'Gestão de Leads & Prospecção'}
                   {currentTab === 'profile' && 'Meus Dados'}
                 </h1>
                 {isLoading && (
@@ -509,25 +711,23 @@ export function App() {
                 {currentTab === 'overview' &&
                   'Métricas e cadastros sincronizados em tempo real.'}
                 {currentTab === 'users' &&
-                  'Gerenciamento de contas, permissões e cadastro de novos acessos.'}
+                  'Gerenciamento de contas, atribuição de atendentes, carteiras e novos acessos.'}
                 {currentTab === 'clinics' &&
-                  'Unidades médicas com busca oficial por CNPJ, CRM do responsável e equipe de médicos e secretárias.'}
+                  (currentUser.role === 'ATENDENTE'
+                    ? 'Clínicas médicas sob sua responsabilidade e gestão de atendimento.'
+                    : 'Unidades médicas com busca oficial por CNPJ, CRM do responsável e equipe.')}
+                {currentTab === 'portfolio' &&
+                  'Distribuição, acompanhamento e balanceamento de clínicas médicas entre a equipe de atendimento.'}
+                {currentTab === 'agendas' &&
+                  'Agendamentos, consultas de pacientes e controle de horários dos clientes.'}
+                {currentTab === 'leads' &&
+                  'Funil de vendas comercial, qualificação de novos clientes e conversão direta em clínicas.'}
                 {currentTab === 'profile' &&
                   'Gerencie sua foto de perfil e visualize suas informações cadastrais.'}
               </p>
             </div>
 
             {/* Quick action for Admin */}
-            {currentUser.role === 'ADMIN' && currentTab === 'users' && (
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition shrink-0"
-              >
-                <UserPlus className="w-4 h-4" />
-                Cadastrar Usuário
-              </button>
-            )}
-
             {currentUser.role === 'ADMIN' && currentTab === 'clinics' && (
               <button
                 onClick={() => {
@@ -538,6 +738,19 @@ export function App() {
               >
                 <Building2 className="w-4 h-4" />
                 Cadastrar Clínica
+              </button>
+            )}
+
+            {currentUser.role === 'ADMIN' && currentTab === 'leads' && (
+              <button
+                onClick={() => {
+                  setSelectedLeadForEdit(null);
+                  setIsLeadFormModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition shrink-0"
+              >
+                <Target className="w-4 h-4" />
+                Cadastrar Lead
               </button>
             )}
           </div>
@@ -559,22 +772,88 @@ export function App() {
               onOpenCreateModal={() => setIsCreateModalOpen(true)}
               onToggleStatus={handleToggleStatus}
               onViewUser={(user) => setSelectedUserForDetail(user)}
+              onOpenEditModal={(user) => {
+                setSelectedUserForEdit(user);
+                setIsUserEditOpen(true);
+              }}
+              onOpenPortfolioModal={(user) => {
+                setSelectedUserForPortfolio(user);
+                setIsPortfolioModalOpen(true);
+              }}
             />
           )}
 
-          {currentTab === 'clinics' && currentUser.role === 'ADMIN' && (
-            <ClinicList
+          {currentTab === 'clinics' &&
+            (currentUser.role === 'ADMIN' || currentUser.role === 'ATENDENTE') && (
+              <ClinicList
+                clinics={
+                  currentUser.role === 'ATENDENTE'
+                    ? clinics.filter(
+                        (c) =>
+                          c.assignedAttendantId === currentUser.id ||
+                          currentUser.assignedClinicIds?.includes(c.id)
+                      )
+                    : clinics
+                }
+                isAdmin={currentUser.role === 'ADMIN'}
+                onOpenCreateModal={() => {
+                  if (currentUser.role !== 'ADMIN') return;
+                  setSelectedClinicForEdit(null);
+                  setIsClinicFormModalOpen(true);
+                }}
+                onOpenEditModal={(c) => {
+                  if (currentUser.role !== 'ADMIN') return;
+                  setSelectedClinicForEdit(c);
+                  setIsClinicFormModalOpen(true);
+                }}
+                onViewClinic={(c) => setSelectedClinicForDetail(c)}
+                onToggleStatus={handleToggleClinicStatus}
+              />
+            )}
+
+          {currentTab === 'portfolio' && currentUser.role === 'ADMIN' && (
+            <PortfolioManager
+              users={users}
               clinics={clinics}
+              onOpenPortfolioModal={(attendant) => {
+                setSelectedUserForPortfolio(attendant);
+                setIsPortfolioModalOpen(true);
+              }}
+              onGoToUsers={() => setCurrentTab('users')}
+              onGoToSchedule={() => setCurrentTab('agendas')}
+              onRefresh={async () => {
+                await loadUsers();
+                await loadClinics();
+              }}
+            />
+          )}
+
+          {currentTab === 'agendas' &&
+            (currentUser.role === 'ADMIN' || currentUser.role === 'ATENDENTE') && (
+              <ScheduleManager
+                currentUser={currentUser}
+                appointments={appointments}
+                clinics={clinics}
+                onCreateAppointment={handleCreateAppointment}
+                onUpdateStatus={handleUpdateAppointmentStatus}
+                onDeleteAppointment={handleDeleteAppointment}
+              />
+            )}
+
+          {currentTab === 'leads' && currentUser.role === 'ADMIN' && (
+            <LeadList
+              leads={leads}
               onOpenCreateModal={() => {
-                setSelectedClinicForEdit(null);
-                setIsClinicFormModalOpen(true);
+                setSelectedLeadForEdit(null);
+                setIsLeadFormModalOpen(true);
               }}
-              onOpenEditModal={(c) => {
-                setSelectedClinicForEdit(c);
-                setIsClinicFormModalOpen(true);
+              onOpenEditModal={(l) => {
+                setSelectedLeadForEdit(l);
+                setIsLeadFormModalOpen(true);
               }}
-              onViewClinic={(c) => setSelectedClinicForDetail(c)}
-              onToggleStatus={handleToggleClinicStatus}
+              onViewLead={(l) => setSelectedLeadForDetail(l)}
+              onDeleteLead={handleDeleteLead}
+              onUpdateStatus={handleUpdateLeadStatus}
             />
           )}
 
@@ -599,11 +878,55 @@ export function App() {
         />
       </Modal>
 
+      {/* Modal: Editar Usuário por Admin */}
+      <UserEditModal
+        user={selectedUserForEdit}
+        isOpen={isUserEditOpen}
+        onClose={() => {
+          setIsUserEditOpen(false);
+          setSelectedUserForEdit(null);
+        }}
+        onSave={handleSaveUserEdit}
+        onOpenPortfolioModal={(u) => {
+          setSelectedUserForEdit(null);
+          setIsUserEditOpen(false);
+          setSelectedUserForPortfolio(u);
+          setIsPortfolioModalOpen(true);
+        }}
+      />
+
+      {/* Modal: Distribuição da Carteira de Clientes */}
+      <PortfolioDistributionModal
+        attendant={selectedUserForPortfolio}
+        allClinics={clinics}
+        allUsers={users}
+        isOpen={isPortfolioModalOpen}
+        onClose={() => {
+          setIsPortfolioModalOpen(false);
+          setSelectedUserForPortfolio(null);
+        }}
+        onSuccess={async () => {
+          await loadUsers();
+          await loadClinics();
+          addToast('success', 'Carteira atualizada!', 'A distribuição de clientes foi salva com sucesso.');
+        }}
+      />
+
       {/* Modal: Detalhes do Usuário */}
       <UserDetailModal
         user={selectedUserForDetail}
         isOpen={!!selectedUserForDetail}
         onClose={() => setSelectedUserForDetail(null)}
+        onOpenEditModal={(u) => {
+          setSelectedUserForDetail(null);
+          setSelectedUserForEdit(u);
+          setIsUserEditOpen(true);
+        }}
+        onOpenPortfolioModal={(u) => {
+          setSelectedUserForDetail(null);
+          setSelectedUserForPortfolio(u);
+          setIsPortfolioModalOpen(true);
+        }}
       />
 
       {/* Modal: Formulário de Clínica Médica (CNPJ, CRM, Especialidades, Endereço) */}
@@ -615,6 +938,7 @@ export function App() {
         }}
         onSubmit={handleCreateOrUpdateClinic}
         initialClinic={selectedClinicForEdit}
+        attendants={users.filter((u) => u.role === 'ATENDENTE' || u.role === 'ADMIN')}
         isSubmitting={isSubmittingClinic}
       />
 
@@ -633,6 +957,33 @@ export function App() {
         onUpdateMember={handleUpdateClinicMember}
         onDeleteMember={handleDeleteClinicMember}
         onToggleMemberStatus={handleToggleClinicMemberStatus}
+      />
+
+      {/* Modal: Formulário de Lead */}
+      <LeadFormModal
+        isOpen={isLeadFormModalOpen}
+        onClose={() => {
+          setIsLeadFormModalOpen(false);
+          setSelectedLeadForEdit(null);
+        }}
+        onSubmit={handleCreateOrUpdateLead}
+        initialLead={selectedLeadForEdit}
+        isSubmitting={isSubmittingLead}
+      />
+
+      {/* Modal: Detalhes do Lead & Conversão */}
+      <LeadDetailModal
+        lead={selectedLeadForDetail}
+        isOpen={!!selectedLeadForDetail}
+        onClose={() => setSelectedLeadForDetail(null)}
+        onEdit={(l) => {
+          setSelectedLeadForDetail(null);
+          setSelectedLeadForEdit(l);
+          setIsLeadFormModalOpen(true);
+        }}
+        onDelete={handleDeleteLead}
+        onUpdateStatus={handleUpdateLeadStatus}
+        onConvertToClinic={handleConvertToClinic}
       />
     </div>
   );

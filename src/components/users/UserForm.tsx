@@ -157,8 +157,8 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Nome Completo */}
         <div className="sm:col-span-2">
-          <label htmlFor="user-name" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-            Nome Completo <span className="text-rose-500">*</span>
+          <label htmlFor="user-name" className="h-5 flex items-center text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            Nome Completo <span className="text-rose-500 ml-0.5">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -191,8 +191,8 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
 
         {/* CPF com Máscara */}
         <div>
-          <label htmlFor="user-cpf" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-            Documento (CPF) <span className="text-rose-500">*</span>
+          <label htmlFor="user-cpf" className="h-5 flex items-center text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            Documento (CPF) <span className="text-rose-500 ml-0.5">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -221,7 +221,7 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
               </div>
             )}
           </div>
-          <span className="block text-[11px] text-slate-400 mt-1">Máscara automática: 000.000.000-00</span>
+          <span className="block text-[11px] text-slate-400 mt-1">Máscara: 000.000.000-00</span>
           {touched.cpf && errors.cpf && (
             <p className="mt-1 text-xs text-rose-600 flex items-center gap-1">
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
@@ -232,8 +232,8 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
 
         {/* Data de Nascimento */}
         <div>
-          <label htmlFor="user-birthdate" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-            Data de Nascimento <span className="text-rose-500">*</span>
+          <label htmlFor="user-birthdate" className="h-5 flex items-center text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            Data de Nascimento <span className="text-rose-500 ml-0.5">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -273,8 +273,8 @@ export const UserForm: React.FC<UserFormProps> = ({ onSubmit, onCancel, isSubmit
 
         {/* E-mail */}
         <div className="sm:col-span-2">
-          <label htmlFor="user-email" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-            E-mail de Acesso <span className="text-rose-500">*</span>
+          <label htmlFor="user-email" className="h-5 flex items-center text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            E-mail de Acesso <span className="text-rose-500 ml-0.5">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">

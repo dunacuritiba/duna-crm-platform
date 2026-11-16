@@ -143,9 +143,11 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {/* Nome Completo */}
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Nome Completo
-                </label>
+                <div className="h-5 flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    Nome Completo
+                  </label>
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <UserIcon className="w-4 h-4" />
@@ -176,7 +178,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
 
               {/* Documento (CPF) - LOCKED */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="h-5 flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     Documento (CPF)
                   </label>
@@ -206,7 +208,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
 
               {/* Data de Nascimento - LOCKED per requirement */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="h-5 flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     Data de Nascimento
                   </label>
@@ -238,7 +240,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
 
               {/* E-mail de Acesso - LOCKED per requirement */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="h-5 flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     E-mail de Acesso
                   </label>
@@ -268,9 +270,11 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
 
               {/* Telefone de Contato (EDITABLE) */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Telefone / WhatsApp (Opcional)
-                </label>
+                <div className="h-5 flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    Telefone / WhatsApp (Opcional)
+                  </label>
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <Phone className="w-4 h-4" />

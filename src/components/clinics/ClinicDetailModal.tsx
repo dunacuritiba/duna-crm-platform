@@ -443,13 +443,13 @@ export const ClinicDetailModal: React.FC<ClinicDetailModalProps> = ({
                               <span className="truncate">{member.email}</span>
                             </p>
                             {member.phone && (
-                              <p className="flex items-center gap-1.5">
+                              <p className="flex items-center gap-1.5 whitespace-nowrap">
                                 <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                <span>{formatPhone(member.phone)}</span>
+                                <span className="whitespace-nowrap">{formatPhone(member.phone)}</span>
                               </p>
                             )}
                             {member.cpf && (
-                              <p className="font-mono text-slate-400 text-[10px]">
+                              <p className="font-mono text-slate-400 text-[10px] whitespace-nowrap">
                                 CPF: {formatCPF(member.cpf)}
                               </p>
                             )}

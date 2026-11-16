@@ -1,6 +1,6 @@
 import React from 'react';
 import type { UserRole, UserStatus } from '../../types/user';
-import { ShieldCheck, UserCheck, Clock } from 'lucide-react';
+import { ShieldCheck, UserCheck, Clock, Headphones } from 'lucide-react';
 
 interface RoleBadgeProps {
   role: UserRole;
@@ -8,17 +8,26 @@ interface RoleBadgeProps {
 }
 
 export const RoleBadge: React.FC<RoleBadgeProps> = ({ role, size = 'md' }) => {
-  const isAdmin = role === 'ADMIN';
-
   const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-xs';
 
-  if (isAdmin) {
+  if (role === 'ADMIN') {
     return (
       <span
         className={`inline-flex items-center gap-1.5 font-medium rounded-full bg-violet-50 text-violet-700 border border-violet-200/80 ${sizeClasses}`}
       >
         <ShieldCheck className="w-3.5 h-3.5 text-violet-600" />
         ADMIN
+      </span>
+    );
+  }
+
+  if (role === 'ATENDENTE') {
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 font-medium rounded-full bg-amber-50 text-amber-700 border border-amber-200/80 ${sizeClasses}`}
+      >
+        <Headphones className="w-3.5 h-3.5 text-amber-600" />
+        ATENDIMENTO
       </span>
     );
   }

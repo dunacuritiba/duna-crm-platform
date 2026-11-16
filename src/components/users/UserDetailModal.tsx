@@ -11,18 +11,25 @@ import {
   Phone,
   Clock,
   Shield,
+  Headphones,
+  Edit2,
+  Briefcase,
 } from 'lucide-react';
 
 interface UserDetailModalProps {
   user: User | null;
   isOpen: boolean;
   onClose: () => void;
+  onOpenEditModal?: (user: User) => void;
+  onOpenPortfolioModal?: (user: User) => void;
 }
 
 export const UserDetailModal: React.FC<UserDetailModalProps> = ({
   user,
   isOpen,
   onClose,
+  onOpenEditModal,
+  onOpenPortfolioModal,
 }) => {
   if (!user) return null;
 
@@ -100,22 +107,67 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
         {/* Access level overview */}
         <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl text-xs space-y-1.5">
           <div className="flex items-center gap-2 font-semibold text-slate-700">
-            <Shield className="w-4 h-4 text-indigo-600" />
-            Nível de Permissão:{' '}
-            {user.role === 'ADMIN' ? 'Acesso Total (Administrador)' : 'Acesso Padrão (USUÁRIO)'}
+            {user.role === 'ADMIN' ? (
+              <>
+                <Shield className="w-4 h-4 text-violet-600" />
+                <span>Nível de Permissão: Acesso Total (Administrador)</span>
+              </>
+            ) : user.role === 'ATENDENTE' ? (
+              <>
+                <Headphones className="w-4 h-4 text-amber-600" />
+                <span>Nível de Permissão: Equipe de Atendimento</span>
+              </>
+            ) : (
+              <>
+                <Shield className="w-4 h-4 text-sky-600" />
+                <span>Nível de Permissão: Acesso Padrão (USUÁRIO)</span>
+              </>
+            )}
           </div>
           <p className="text-slate-500 leading-relaxed">
             {user.role === 'ADMIN'
-              ? 'Pode gerenciar todos os usuários, criar cadastros e alterar configurações do sistema.'
+              ? 'Pode gerenciar todos os usuários, criar e editar cadastros, distribuir carteiras de clientes e alterar configurações globais do CRM.'
+              : user.role === 'ATENDENTE'
+              ? `Membro da equipe de atendimento responsável pela gestão da carteira de clínicas e pelas agendas dos pacientes (${user.assignedClinicsCount || 0} clínicas atribuídas).`
               : 'Possui acesso restrito exclusivamente à tela "Meus Dados". Pode atualizar foto de perfil, porém e-mail e data de nascimento são estritamente protegidos.'}
           </p>
         </div>
 
         {/* Footer actions */}
-        <div className="flex items-center justify-end pt-2">
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+          <div className="flex items-center gap-2">
+            {user.role === 'ATENDENTE' && onOpenPortfolioModal && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenPortfolioModal(user);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-semibold transition"
+              >
+                <Briefcase className="w-3.5 h-3.5 text-amber-600" />
+                Distribuir Carteira ({user.assignedClinicsCount || 0})
+              </button>
+            )}
+
+            {onOpenEditModal && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenEditModal(user);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-semibold transition"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                Editar Usuário
+              </button>
+            )}
+          </div>
+
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-sm font-medium transition"
+            className="px-5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-xs sm:text-sm font-medium transition"
           >
             Fechar
           </button>

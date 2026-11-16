@@ -88,6 +88,9 @@ export interface MedicalClinic {
   contractEndDate?: string;
   contractNotes?: string;
   units?: ClinicUnit[];
+  assignedAttendantId?: string | null;
+  assignedAttendantName?: string | null;
+  assignedAttendantAvatar?: string | null;
   createdAt: string;
   updatedAt: string;
   membersCount?: {
@@ -120,6 +123,7 @@ export interface CreateClinicInput {
   contractStartDate?: string;
   contractEndDate?: string;
   contractNotes?: string;
+  assignedAttendantId?: string | null;
   units?: CreateClinicUnitInput[];
 }
 

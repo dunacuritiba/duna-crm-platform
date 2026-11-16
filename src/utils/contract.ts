@@ -116,3 +116,20 @@ export function getLiveContractStatus(
     isExpired: false,
   };
 }
+
+/**
+ * Checks whether a clinic has an active, valid contract (cliente ativo).
+ * Strictly excludes: LEAD, EM_NEGOCIACAO, CONTRATO_NEGADO, CONTRATO_VENCIDO,
+ * or inactive clinics.
+ */
+export function isClinicContractActive(
+  status: 'ATIVO' | 'INATIVO',
+  contractStatus?: ClinicContractStatus,
+  contractEndDate?: string
+): boolean {
+  if (status !== 'ATIVO') return false;
+  const live = getLiveContractStatus(contractStatus || 'LEAD', contractEndDate);
+  if (live.isExpired) return false;
+  return live.status === 'CONTRATO_VIGENTE' || live.status === 'CONTRATO_A_VENCER';
+}
+

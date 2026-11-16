@@ -216,9 +216,9 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
           <div>
             <label
               htmlFor="register-cpf"
-              className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
+              className="h-5 flex items-center text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
             >
-              Documento (CPF) <span className="text-rose-500">*</span>
+              Documento (CPF) <span className="text-rose-500 ml-0.5">*</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -254,9 +254,9 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
           <div>
             <label
               htmlFor="register-birthdate"
-              className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
+              className="h-5 flex items-center text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
             >
-              Data de Nascimento <span className="text-rose-500">*</span>
+              Data de Nascimento <span className="text-rose-500 ml-0.5">*</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -328,9 +328,9 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
           <div>
             <label
               htmlFor="register-pass"
-              className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
+              className="h-5 flex items-center text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
             >
-              Criar Senha <span className="text-rose-500">*</span>
+              Criar Senha <span className="text-rose-500 ml-0.5">*</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -365,9 +365,9 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
           <div>
             <label
               htmlFor="register-pass-confirm"
-              className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
+              className="h-5 flex items-center text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
             >
-              Confirmar Senha <span className="text-rose-500">*</span>
+              Confirmar Senha <span className="text-rose-500 ml-0.5">*</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">

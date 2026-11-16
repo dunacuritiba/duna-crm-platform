@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'USUARIO';
+export type UserRole = 'ADMIN' | 'USUARIO' | 'ATENDENTE';
 export type UserStatus = 'ATIVO' | 'INATIVO' | 'PENDENTE';
 export type OtpType = 'REGISTRATION' | 'PASSWORD_RESET';
 
@@ -20,6 +20,8 @@ export interface User {
   otpExpiresAt?: string | null;
   otpType?: OtpType | null;
   isVerified?: boolean;
+  assignedClinicsCount?: number;
+  assignedClinicIds?: string[];
 }
 
 export interface CreateUserInput {
@@ -31,6 +33,19 @@ export interface CreateUserInput {
   phone?: string;
   department?: string;
   password?: string;
+  role?: UserRole;
+}
+
+export interface UpdateUserInput {
+  name?: string;
+  cpf?: string;
+  email?: string;
+  birthDate?: string;
+  avatar?: string;
+  phone?: string;
+  department?: string;
+  role?: UserRole;
+  status?: UserStatus;
 }
 
 export interface SignUpInput extends CreateUserInput {

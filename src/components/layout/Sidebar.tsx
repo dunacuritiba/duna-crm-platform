@@ -4,13 +4,17 @@ import {
   LayoutDashboard,
   Users,
   Building2,
+  Target,
   UserCheck,
   Shield,
   Lock,
   Info,
+  CalendarCheck,
+  Headphones,
+  Briefcase,
 } from 'lucide-react';
 
-export type NavTab = 'overview' | 'users' | 'clinics' | 'profile';
+export type NavTab = 'overview' | 'users' | 'clinics' | 'portfolio' | 'agendas' | 'leads' | 'profile';
 
 interface SidebarProps {
   currentTab: NavTab;
@@ -28,40 +32,62 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
 }) => {
   const isAdmin = userRole === 'ADMIN';
+  const isAttendant = userRole === 'ATENDENTE';
 
   const navItems = [
     {
       id: 'overview' as NavTab,
       label: 'Visão Geral',
       icon: LayoutDashboard,
-      adminOnly: true,
+      allowedRoles: ['ADMIN'] as UserRole[],
       description: 'Métricas e resumo do CRM',
     },
     {
       id: 'users' as NavTab,
       label: 'Gestão de Usuários',
       icon: Users,
-      adminOnly: true,
+      allowedRoles: ['ADMIN'] as UserRole[],
       description: 'Listagem e criação de contas',
     },
     {
       id: 'clinics' as NavTab,
-      label: 'Clínicas Médicas',
-      icon: Building2,
-      adminOnly: true,
-      description: 'CNPJ, CRM e corpo clínico',
+      label: isAttendant ? 'Minha Carteira' : 'Clínicas Médicas',
+      icon: isAttendant ? Briefcase : Building2,
+      allowedRoles: ['ADMIN', 'ATENDENTE'] as UserRole[],
+      description: isAttendant ? 'Clínicas sob sua gestão' : 'CNPJ, CRM e corpo clínico',
+    },
+    {
+      id: 'portfolio' as NavTab,
+      label: 'Gestão de Carteiras',
+      icon: Briefcase,
+      allowedRoles: ['ADMIN'] as UserRole[],
+      description: 'Distribuição de clientes por atendente',
+    },
+    {
+      id: 'agendas' as NavTab,
+      label: 'Gestão de Agendas',
+      icon: CalendarCheck,
+      allowedRoles: ['ADMIN', 'ATENDENTE'] as UserRole[],
+      description: 'Agendamentos e consultas dos pacientes',
+    },
+    {
+      id: 'leads' as NavTab,
+      label: 'Gestão de Leads',
+      icon: Target,
+      allowedRoles: ['ADMIN'] as UserRole[],
+      description: 'Captação e funil comercial',
     },
     {
       id: 'profile' as NavTab,
       label: 'Meus Dados',
       icon: UserCheck,
-      adminOnly: false,
+      allowedRoles: ['ADMIN', 'ATENDENTE', 'USUARIO'] as UserRole[],
       description: 'Foto e dados pessoais',
     },
   ];
 
-  const handleTabClick = (tab: NavTab, adminOnly: boolean) => {
-    if (adminOnly && !isAdmin) return;
+  const handleTabClick = (tab: NavTab, allowedRoles: UserRole[]) => {
+    if (!allowedRoles.includes(userRole)) return;
     onSelectTab(tab);
     onCloseMobile();
   };
@@ -95,13 +121,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentTab === item.id;
-              const isLocked = item.adminOnly && !isAdmin;
+              const isLocked = !item.allowedRoles.includes(userRole);
+
+              // Don't render locked items for non-admins if it's adminOnly like leads
+              if (isLocked && !isAdmin) {
+                return null;
+              }
 
               return (
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => handleTabClick(item.id, item.adminOnly)}
+                  onClick={() => handleTabClick(item.id, item.allowedRoles)}
                   disabled={isLocked}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
                     isActive
@@ -135,6 +166,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Shield className="w-4 h-4 text-violet-600" />
                 <span>Perfil Administrador</span>
               </>
+            ) : isAttendant ? (
+              <>
+                <Headphones className="w-4 h-4 text-amber-600" />
+                <span>Equipe de Atendimento</span>
+              </>
             ) : (
               <>
                 <Info className="w-4 h-4 text-sky-600" />
@@ -144,7 +180,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <p className="text-slate-500 text-[11px] leading-relaxed">
             {isAdmin
-              ? 'Acesso total para criar e gerenciar usuários no CRM.'
+              ? 'Acesso total para criar e editar usuários, distribuir carteiras e gerenciar o CRM.'
+              : isAttendant
+              ? 'Acesso às clínicas da sua carteira e à gestão de agendas dos pacientes.'
               : 'Acesso restrito a "Meus Dados". Não pode alterar e-mail ou data de nascimento.'}
           </p>
         </div>

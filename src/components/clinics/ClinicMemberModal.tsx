@@ -209,10 +209,10 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
               <Award className="w-4 h-4 text-indigo-600" />
               Dados do Conselho Profissional
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  CRM do Médico <span className="text-rose-500">*</span>
+                <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                  CRM do Médico <span className="text-rose-500 ml-0.5">*</span>
                 </label>
                 <input
                   type="text"
@@ -220,12 +220,12 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
                   value={crm}
                   onChange={(e) => setCrm(e.target.value.toUpperCase())}
                   placeholder="Ex: CRM/SP 123456"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition uppercase"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition uppercase"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                   Especialidade Médica
                 </label>
                 <input
@@ -233,7 +233,7 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
                   value={specialty}
                   onChange={(e) => setSpecialty(e.target.value)}
                   placeholder="Ex: Cardiologia, Pediatria"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
                 />
               </div>
             </div>
@@ -281,11 +281,11 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
         )}
 
         {/* Common Personal Information */}
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+            <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
               <UserIcon className="w-3.5 h-3.5 text-slate-400" />
-              Nome Completo <span className="text-rose-500">*</span>
+              Nome Completo <span className="text-rose-500 ml-0.5">*</span>
             </label>
             <input
               type="text"
@@ -293,15 +293,15 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: Dra. Mariana Souza Santos"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
-                E-mail Institucional <span className="text-rose-500">*</span>
+                E-mail Institucional <span className="text-rose-500 ml-0.5">*</span>
               </label>
               <input
                 type="email"
@@ -309,12 +309,12 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="medico@clinica.com.br"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <Phone className="w-3.5 h-3.5 text-slate-400" />
                 Telefone / WhatsApp
               </label>
@@ -323,14 +323,14 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
                 value={phone}
                 onChange={(e) => setPhone(formatPhone(e.target.value))}
                 placeholder="(00) 00000-0000"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+              <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                 <CreditCard className="w-3.5 h-3.5 text-slate-400" />
                 CPF (Opcional)
               </label>
@@ -340,18 +340,18 @@ export const ClinicMemberModal: React.FC<ClinicMemberModalProps> = ({
                 onChange={(e) => setCpf(formatCPF(e.target.value))}
                 maxLength={14}
                 placeholder="000.000.000-00"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                 Status na Clínica
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as 'ATIVO' | 'INATIVO')}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
               >
                 <option value="ATIVO">Ativo</option>
                 <option value="INATIVO">Inativo</option>

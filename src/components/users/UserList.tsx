@@ -12,6 +12,8 @@ import {
   Calendar,
   CreditCard,
   Building,
+  Edit2,
+  Briefcase,
 } from 'lucide-react';
 
 interface UserListProps {
@@ -20,6 +22,8 @@ interface UserListProps {
   onOpenCreateModal: () => void;
   onToggleStatus: (userId: string) => void;
   onViewUser: (user: User) => void;
+  onOpenEditModal: (user: User) => void;
+  onOpenPortfolioModal: (user: User) => void;
 }
 
 export const UserList: React.FC<UserListProps> = ({
@@ -28,6 +32,8 @@ export const UserList: React.FC<UserListProps> = ({
   onOpenCreateModal,
   onToggleStatus,
   onViewUser,
+  onOpenEditModal,
+  onOpenPortfolioModal,
 }) => {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'ALL' | UserRole>('ALL');
@@ -77,14 +83,14 @@ export const UserList: React.FC<UserListProps> = ({
 
         {/* Filter Pills */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
-          <span className="text-slate-400 font-medium flex items-center gap-1 mr-1">
+          <span className="text-slate-400 font-medium flex items-center gap-1 mr-1 whitespace-nowrap">
             <Filter className="w-3.5 h-3.5" /> Filtros:
           </span>
 
           {/* Status filters */}
           <button
             onClick={() => setStatusFilter('ALL')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
               statusFilter === 'ALL'
                 ? 'bg-slate-900 text-white'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -94,7 +100,7 @@ export const UserList: React.FC<UserListProps> = ({
           </button>
           <button
             onClick={() => setStatusFilter('ATIVO')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
               statusFilter === 'ATIVO'
                 ? 'bg-emerald-600 text-white'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -104,7 +110,7 @@ export const UserList: React.FC<UserListProps> = ({
           </button>
           <button
             onClick={() => setStatusFilter('INATIVO')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
               statusFilter === 'INATIVO'
                 ? 'bg-rose-600 text-white'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -118,7 +124,7 @@ export const UserList: React.FC<UserListProps> = ({
           {/* Role filters */}
           <button
             onClick={() => setRoleFilter('ALL')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
               roleFilter === 'ALL'
                 ? 'bg-slate-800 text-white'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -127,18 +133,28 @@ export const UserList: React.FC<UserListProps> = ({
             Todos Perfis
           </button>
           <button
+            onClick={() => setRoleFilter('ATENDENTE')}
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
+              roleFilter === 'ATENDENTE'
+                ? 'bg-amber-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            Atendimento ({users.filter((u) => u.role === 'ATENDENTE').length})
+          </button>
+          <button
             onClick={() => setRoleFilter('USUARIO')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
               roleFilter === 'USUARIO'
                 ? 'bg-sky-600 text-white'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            Apenas Usuários ({users.filter((u) => u.role === 'USUARIO').length})
+            Usuários ({users.filter((u) => u.role === 'USUARIO').length})
           </button>
           <button
             onClick={() => setRoleFilter('ADMIN')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
               roleFilter === 'ADMIN'
                 ? 'bg-violet-600 text-white'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -151,125 +167,160 @@ export const UserList: React.FC<UserListProps> = ({
 
       {/* Desktop & Tablet Table View */}
       <div className="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-sm text-slate-600">
-          <thead className="bg-slate-50/80 border-b border-slate-200/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            <tr>
-              <th className="py-3.5 px-6">Usuário</th>
-              <th className="py-3.5 px-4">Documento (CPF)</th>
-              <th className="py-3.5 px-4">Nascimento / Idade</th>
-              <th className="py-3.5 px-4">Perfil</th>
-              <th className="py-3.5 px-4">Status</th>
-              <th className="py-3.5 px-6 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {filteredUsers.length === 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-600 min-w-[880px]">
+            <thead className="bg-slate-50/80 border-b border-slate-200/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
-                <td colSpan={6} className="py-12 text-center text-slate-400">
-                  Nenhum usuário encontrado para os critérios selecionados.
-                </td>
+                <th className="py-3.5 px-6 whitespace-nowrap">Usuário</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">Documento (CPF)</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">Nascimento / Idade</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">Perfil</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">Status</th>
+                <th className="py-3.5 px-6 text-right whitespace-nowrap">Ações</th>
               </tr>
-            ) : (
-              filteredUsers.map((user) => {
-                const isCurrent = user.id === currentUserId;
-                const age = calculateAge(user.birthDate);
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    Nenhum usuário encontrado para os critérios selecionados.
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((user) => {
+                  const isCurrent = user.id === currentUserId;
+                  const age = calculateAge(user.birthDate);
 
-                return (
-                  <tr
-                    key={user.id}
-                    className={`hover:bg-slate-50/70 transition-colors ${
-                      isCurrent ? 'bg-indigo-50/30' : ''
-                    }`}
-                  >
-                    {/* User info */}
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3.5">
-                        <img
-                          src={user.avatar}
-                          alt={user.name}
-                          className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-xs"
-                        />
-                        <div>
-                          <div className="font-semibold text-slate-800 flex items-center gap-2">
-                            {user.name}
-                            {isCurrent && (
-                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
-                                Você
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-                            <span>{user.email}</span>
-                            {user.department && (
-                              <>
-                                <span className="text-slate-300">•</span>
-                                <span className="text-slate-500">{user.department}</span>
-                              </>
-                            )}
+                  return (
+                    <tr
+                      key={user.id}
+                      className={`hover:bg-slate-50/70 transition-colors ${
+                        isCurrent ? 'bg-indigo-50/30' : ''
+                      }`}
+                    >
+                      {/* User info */}
+                      <td className="py-4 px-6 whitespace-nowrap">
+                        <div className="flex items-center gap-3.5">
+                          <img
+                            src={user.avatar}
+                            alt={user.name}
+                            className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-xs shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <div className="font-semibold text-slate-800 flex items-center gap-2">
+                              {user.name}
+                              {isCurrent && (
+                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                                  Você
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                              <span className="text-slate-500">{user.email}</span>
+                              {user.department && (
+                                <>
+                                  <span className="text-slate-300">•</span>
+                                  <span className="text-slate-500">{user.department}</span>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* CPF */}
-                    <td className="py-4 px-4 font-mono text-xs text-slate-700">
-                      {user.cpf}
-                    </td>
+                      {/* CPF */}
+                      <td className="py-4 px-4 font-mono text-xs text-slate-700 whitespace-nowrap">
+                        {user.cpf}
+                      </td>
 
-                    {/* Nascimento / Idade */}
-                    <td className="py-4 px-4 text-xs">
-                      <div className="text-slate-700 font-medium">
-                        {formatDateBR(user.birthDate)}
-                      </div>
-                      {age !== null && (
-                        <div className="text-[11px] text-slate-400">{age} anos</div>
-                      )}
-                    </td>
+                      {/* Nascimento / Idade */}
+                      <td className="py-4 px-4 text-xs whitespace-nowrap">
+                        <div className="text-slate-700 font-medium">
+                          {formatDateBR(user.birthDate)}
+                        </div>
+                        {age !== null && (
+                          <div className="text-[11px] text-slate-400">{age} anos</div>
+                        )}
+                      </td>
 
-                    {/* Role */}
-                    <td className="py-4 px-4">
-                      <RoleBadge role={user.role} />
-                    </td>
-
-                    {/* Status */}
-                    <td className="py-4 px-4">
-                      <StatusBadge status={user.status} />
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => onViewUser(user)}
-                          title="Visualizar detalhes"
-                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => onToggleStatus(user.id)}
-                          title={user.status === 'ATIVO' ? 'Inativar usuário' : 'Ativar usuário'}
-                          className={`p-1.5 rounded-lg transition ${
-                            user.status === 'ATIVO'
-                              ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
-                              : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
-                          }`}
-                        >
-                          {user.status === 'ATIVO' ? (
-                            <XCircle className="w-4 h-4" />
-                          ) : (
-                            <CheckCircle2 className="w-4 h-4" />
+                      {/* Role & Portfolio */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="space-y-1">
+                          <RoleBadge role={user.role} />
+                          {user.role === 'ATENDENTE' && (
+                            <div>
+                              <button
+                                type="button"
+                                onClick={() => onOpenPortfolioModal(user)}
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-md border border-amber-200 transition whitespace-nowrap"
+                                title="Gerenciar carteira de clientes"
+                              >
+                                <Briefcase className="w-2.5 h-2.5" />
+                                Carteira: {user.assignedClinicsCount || 0}
+                              </button>
+                            </div>
                           )}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <StatusBadge status={user.status} />
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-4 px-6 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {user.role === 'ATENDENTE' && (
+                            <button
+                              onClick={() => onOpenPortfolioModal(user)}
+                              title="Distribuir Carteira de Clientes"
+                              className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                            >
+                              <Briefcase className="w-4 h-4" />
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => onOpenEditModal(user)}
+                            title="Editar Usuário"
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={() => onViewUser(user)}
+                            title="Visualizar detalhes"
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={() => onToggleStatus(user.id)}
+                            title={user.status === 'ATIVO' ? 'Inativar usuário' : 'Ativar usuário'}
+                            className={`p-1.5 rounded-lg transition ${
+                              user.status === 'ATIVO'
+                                ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
+                                : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
+                            }`}
+                          >
+                            {user.status === 'ATIVO' ? (
+                              <XCircle className="w-4 h-4" />
+                            ) : (
+                              <CheckCircle2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Mobile Card View */}
@@ -332,14 +383,33 @@ export const UserList: React.FC<UserListProps> = ({
                   </div>
                 </div>
 
-                <div className="pt-1">
+                <div className="pt-1 flex flex-wrap sm:flex-nowrap items-center gap-2">
                   <button
                     onClick={() => onViewUser(user)}
-                    className="w-full py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 text-center transition flex items-center justify-center gap-1.5"
+                    className="flex-1 min-w-[90px] py-2 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 text-center transition flex items-center justify-center gap-1.5 whitespace-nowrap"
                   >
                     <Eye className="w-3.5 h-3.5 text-slate-500" />
-                    Ver Detalhes do Usuário
+                    Detalhes
                   </button>
+
+                  <button
+                    onClick={() => onOpenEditModal(user)}
+                    className="flex-1 min-w-[90px] py-2 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl border border-indigo-200 text-center transition flex items-center justify-center gap-1.5 whitespace-nowrap"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-indigo-600" />
+                    Editar
+                  </button>
+
+                  {user.role === 'ATENDENTE' && (
+                    <button
+                      onClick={() => onOpenPortfolioModal(user)}
+                      className="w-full sm:w-auto px-3 py-2 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 text-center transition flex items-center justify-center gap-1 whitespace-nowrap"
+                      title="Gerenciar Carteira"
+                    >
+                      <Briefcase className="w-3.5 h-3.5 text-amber-600" />
+                      Carteira ({user.assignedClinicsCount || 0})
+                    </button>
+                  )}
                 </div>
               </div>
             );

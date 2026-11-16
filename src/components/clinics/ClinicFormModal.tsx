@@ -5,6 +5,7 @@ import type {
   CreateClinicUnitInput,
   ClinicContractStatus,
 } from '../../types/clinic';
+import type { User } from '../../types/user';
 import { Modal } from '../common/Modal';
 import { ClinicLogoUploader } from './ClinicLogoUploader';
 import {
@@ -33,6 +34,7 @@ import {
   Calendar,
   FileText,
   ShieldCheck,
+  Headphones,
 } from 'lucide-react';
 
 const SUGGESTED_SPECIALTIES = [
@@ -57,6 +59,7 @@ interface ClinicFormModalProps {
   onClose: () => void;
   onSubmit: (input: CreateClinicInput) => Promise<void>;
   initialClinic?: MedicalClinic | null;
+  attendants?: User[];
   isSubmitting?: boolean;
 }
 
@@ -65,6 +68,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
   onClose,
   onSubmit,
   initialClinic,
+  attendants = [],
   isSubmitting = false,
 }) => {
   // Navigation section in modal
@@ -88,6 +92,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
   const [contractStartDate, setContractStartDate] = useState('');
   const [contractEndDate, setContractEndDate] = useState('');
   const [contractNotes, setContractNotes] = useState('');
+  const [assignedAttendantId, setAssignedAttendantId] = useState('');
 
   // Units Info (Multiple branches)
   const [units, setUnits] = useState<CreateClinicUnitInput[]>([
@@ -130,6 +135,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
       setContractStartDate(initialClinic.contractStartDate || '');
       setContractEndDate(initialClinic.contractEndDate || '');
       setContractNotes(initialClinic.contractNotes || '');
+      setAssignedAttendantId(initialClinic.assignedAttendantId || '');
 
       if (initialClinic.units && initialClinic.units.length > 0) {
         setUnits(
@@ -172,6 +178,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
       setCnpjError(null);
       setCnpjSuccess(null);
       setFormError(null);
+      setAssignedAttendantId('');
       setFormSection('general');
     } else {
       // Reset
@@ -209,6 +216,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
       setCnpjError(null);
       setCnpjSuccess(null);
       setFormError(null);
+      setAssignedAttendantId('');
       setFormSection('general');
     }
   }, [initialClinic, isOpen]);
@@ -431,6 +439,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
         contractStartDate: contractStartDate || undefined,
         contractEndDate: contractEndDate || undefined,
         contractNotes: contractNotes.trim() || undefined,
+        assignedAttendantId: assignedAttendantId || null,
         units: units.map((u) => ({
           ...u,
           name: u.name.trim(),
@@ -596,8 +605,8 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
             {/* Razão Social e Nome Fantasia */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Razão Social <span className="text-rose-500">*</span>
+                <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                  Razão Social <span className="text-rose-500 ml-0.5">*</span>
                 </label>
                 <input
                   type="text"
@@ -610,7 +619,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                   Nome Fantasia
                 </label>
                 <input
@@ -632,8 +641,8 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    CRM do Responsável Técnico <span className="text-rose-500">*</span>
+                  <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
+                    CRM do Responsável Técnico <span className="text-rose-500 ml-0.5">*</span>
                   </label>
                   <input
                     type="text"
@@ -641,12 +650,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                     value={technicalResponsibleCrm}
                     onChange={(e) => setTechnicalResponsibleCrm(e.target.value.toUpperCase())}
                     placeholder="Ex: CRM/SP 123456 ou 12345-PR"
-                    className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition uppercase"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition uppercase"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                     Nome do Médico Responsável
                   </label>
                   <input
@@ -654,7 +663,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                     value={technicalResponsibleName}
                     onChange={(e) => setTechnicalResponsibleName(e.target.value)}
                     placeholder="Ex: Dr. Roberto Alcantara"
-                    className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
                   />
                 </div>
               </div>
@@ -741,7 +750,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
             {/* Contato Central */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+                <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                   <Phone className="w-3.5 h-3.5 text-slate-400" />
                   Telefone / WhatsApp Geral
                 </label>
@@ -755,7 +764,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+                <label className="h-5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                   <Mail className="w-3.5 h-3.5 text-slate-400" />
                   E-mail Institucional Geral
                 </label>
@@ -875,13 +884,14 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                   </div>
 
                   {/* Address fields for this unit */}
-                  <div className="space-y-3 pt-2 border-t border-slate-100">
+                  <div className="space-y-3 pt-3 border-t border-slate-100">
+                    {/* Linha 1: CEP (1 col) + Logradouro (2 cols) */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center justify-between">
+                        <label className="h-5 flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
                           <span>CEP</span>
                           {isLoadingUnitCep === index && (
-                            <span className="text-[10px] text-indigo-600 flex items-center gap-1">
+                            <span className="text-[10px] text-indigo-600 flex items-center gap-1 font-normal">
                               <RefreshCw className="w-2.5 h-2.5 animate-spin" /> Buscando...
                             </span>
                           )}
@@ -898,12 +908,12 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                           }}
                           maxLength={9}
                           placeholder="00000-000"
-                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
                         />
                       </div>
 
                       <div className="sm:col-span-2">
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
                           Logradouro (Rua, Avenida...)
                         </label>
                         <input
@@ -911,14 +921,15 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                           value={unit.street || ''}
                           onChange={(e) => handleUpdateUnit(index, 'street', e.target.value)}
                           placeholder="Av. Brasil"
-                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {/* Linha 2: Número (1 col) + Complemento (1 col) + Bairro (1 col) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
                           Número
                         </label>
                         <input
@@ -926,25 +937,25 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                           value={unit.number || ''}
                           onChange={(e) => handleUpdateUnit(index, 'number', e.target.value)}
                           placeholder="100"
-                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
                           Complemento
                         </label>
                         <input
                           type="text"
                           value={unit.complement || ''}
                           onChange={(e) => handleUpdateUnit(index, 'complement', e.target.value)}
-                          placeholder="Sala 204"
-                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                          placeholder="Sala 204, Bloco B"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
                           Bairro
                         </label>
                         <input
@@ -952,33 +963,40 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                           value={unit.neighborhood || ''}
                           onChange={(e) => handleUpdateUnit(index, 'neighborhood', e.target.value)}
                           placeholder="Centro"
-                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Linha 3: Cidade (2 cols) + Estado/UF (1 col) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2">
+                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
+                          Cidade
+                        </label>
+                        <input
+                          type="text"
+                          value={unit.city || ''}
+                          onChange={(e) => handleUpdateUnit(index, 'city', e.target.value)}
+                          placeholder="Curitiba"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                          Cidade / UF
+                        <label className="h-5 flex items-center text-[11px] font-semibold text-slate-600 mb-1">
+                          Estado (UF)
                         </label>
-                        <div className="flex gap-1.5">
-                          <input
-                            type="text"
-                            value={unit.city || ''}
-                            onChange={(e) => handleUpdateUnit(index, 'city', e.target.value)}
-                            placeholder="Curitiba"
-                            className="flex-1 px-2.5 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
-                          />
-                          <input
-                            type="text"
-                            value={unit.state || ''}
-                            onChange={(e) =>
-                              handleUpdateUnit(index, 'state', e.target.value.toUpperCase())
-                            }
-                            maxLength={2}
-                            placeholder="PR"
-                            className="w-12 px-2 py-2 bg-white border border-slate-300 rounded-xl text-xs uppercase font-semibold text-center text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
-                          />
-                        </div>
+                        <input
+                          type="text"
+                          value={unit.state || ''}
+                          onChange={(e) =>
+                            handleUpdateUnit(index, 'state', e.target.value.toUpperCase())
+                          }
+                          maxLength={2}
+                          placeholder="PR"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs uppercase font-semibold text-center text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                        />
                       </div>
                     </div>
                   </div>
@@ -1071,7 +1089,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="h-5 flex items-center text-xs font-semibold text-slate-700 mb-1">
                     Data de Início da Vigência
                   </label>
                   <input
@@ -1083,7 +1101,7 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                  <label className="h-5 flex items-center justify-between text-xs font-semibold text-slate-700 mb-1">
                     <span>Data Final de Vigência (Vencimento)</span>
                     <span className="text-[10px] text-indigo-600 font-normal">
                       atualiza status auto
@@ -1112,6 +1130,29 @@ export const ClinicFormModal: React.FC<ClinicFormModalProps> = ({
                 placeholder="Detalhes adicionais sobre o contrato, cláusulas de renovação ou negociações em andamento..."
                 className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition resize-none"
               />
+            </div>
+
+            {/* Assigned Attendant Selector */}
+            <div className="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl space-y-2">
+              <label className="block text-xs font-bold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+                <Headphones className="w-4 h-4 text-amber-600" />
+                Atendente Responsável pela Carteira
+              </label>
+              <select
+                value={assignedAttendantId}
+                onChange={(e) => setAssignedAttendantId(e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              >
+                <option value="">Sem atendente designado (carteira geral pendente)</option>
+                {attendants.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name} ({a.department || 'Equipe de Atendimento'}) - {a.email}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-amber-800/80">
+                O atendente selecionado terá esta clínica vinculada à sua carteira e fará a gestão de agendamentos e pacientes.
+              </p>
             </div>
           </div>
         )}

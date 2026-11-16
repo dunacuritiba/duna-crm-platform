@@ -15,10 +15,12 @@ import {
   MapPin,
   FileText,
   Clock,
+  Headphones,
 } from 'lucide-react';
 
 interface ClinicListProps {
   clinics: MedicalClinic[];
+  isAdmin?: boolean;
   onOpenCreateModal: () => void;
   onOpenEditModal: (clinic: MedicalClinic) => void;
   onViewClinic: (clinic: MedicalClinic) => void;
@@ -27,6 +29,7 @@ interface ClinicListProps {
 
 export const ClinicList: React.FC<ClinicListProps> = ({
   clinics,
+  isAdmin = true,
   onOpenCreateModal,
   onOpenEditModal,
   onViewClinic,
@@ -128,8 +131,8 @@ export const ClinicList: React.FC<ClinicListProps> = ({
       </div>
 
       {/* Action / Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex-1 flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -143,7 +146,7 @@ export const ClinicList: React.FC<ClinicListProps> = ({
           </div>
 
           {/* Contract Filter */}
-          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-2xs self-start sm:self-auto overflow-x-auto">
+          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-2xs self-stretch sm:self-auto overflow-x-auto">
             <button
               type="button"
               onClick={() => setContractFilter('ALL')}
@@ -191,48 +194,56 @@ export const ClinicList: React.FC<ClinicListProps> = ({
           </div>
         </div>
 
-        {/* Create Clinic Button */}
-        <button
-          type="button"
-          onClick={onOpenCreateModal}
-          className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition flex items-center justify-center gap-2 shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          Cadastrar Nova Clínica
-        </button>
+        {/* Create Clinic Button (Admin Only) */}
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={onOpenCreateModal}
+            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition flex items-center justify-center gap-2 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            Cadastrar Nova Clínica
+          </button>
+        )}
       </div>
 
       {/* Main Table */}
       {filteredClinics.length === 0 ? (
         <div className="bg-white border border-slate-200/80 rounded-3xl p-12 text-center shadow-xs">
           <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-slate-800">Nenhuma clínica encontrada</h3>
+          <h3 className="text-base font-bold text-slate-800">
+            {isAdmin ? 'Nenhuma clínica encontrada' : 'Nenhuma clínica atribuída à sua carteira'}
+          </h3>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
-            {search || contractFilter !== 'ALL'
-              ? 'Tente ajustar os filtros de busca para encontrar o registro desejado.'
-              : 'Cadastre a primeira clínica médica no sistema puxando diretamente os dados pelo CNPJ.'}
+            {isAdmin
+              ? search || contractFilter !== 'ALL'
+                ? 'Tente ajustar os filtros de busca para encontrar o registro desejado.'
+                : 'Cadastre a primeira clínica médica no sistema puxando diretamente os dados pelo CNPJ.'
+              : 'O administrador do sistema distribuirá as clínicas médicas para sua carteira de atendimento. Assim que forem atribuídas, elas aparecerão aqui para sua gestão de atendimentos e consultas.'}
           </p>
-          <button
-            type="button"
-            onClick={onOpenCreateModal}
-            className="mt-5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition inline-flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" /> Cadastrar Clínica Médica
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={onOpenCreateModal}
+              className="mt-5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition inline-flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Cadastrar Clínica Médica
+            </button>
+          )}
         </div>
       ) : (
         <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-xs border-collapse min-w-[980px]">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-                  <th className="py-3.5 px-4 sm:px-6">Clínica & Logo</th>
-                  <th className="py-3.5 px-4">Responsável Técnico</th>
-                  <th className="py-3.5 px-4">Unidades / Atendimento</th>
-                  <th className="py-3.5 px-4">Contrato & Vigência</th>
-                  <th className="py-3.5 px-4">Corpo Clínico</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 sm:px-6 text-right">Ações</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Clínica & Logo</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Responsável Técnico</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Unidades / Atendimento</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Contrato & Vigência</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Corpo Clínico</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Status</th>
+                  <th className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -249,7 +260,7 @@ export const ClinicList: React.FC<ClinicListProps> = ({
                       onClick={() => onViewClinic(clinic)}
                     >
                       {/* Name, Logo & CNPJ */}
-                      <td className="py-4 px-4 sm:px-6">
+                      <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           {clinic.logo ? (
                             <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0 shadow-2xs">
@@ -266,49 +277,59 @@ export const ClinicList: React.FC<ClinicListProps> = ({
                           )}
 
                           <div className="min-w-0">
-                            <p className="font-bold text-slate-900 truncate max-w-[220px]">
+                            <p className="font-bold text-slate-900 truncate max-w-[260px]">
                               {clinic.tradeName || clinic.companyName}
                             </p>
                             {clinic.tradeName && clinic.tradeName !== clinic.companyName && (
-                              <p className="text-[11px] text-slate-400 truncate max-w-[220px]">
+                              <p className="text-[11px] text-slate-400 truncate max-w-[260px]">
                                 {clinic.companyName}
                               </p>
                             )}
                             <p className="font-mono text-[11px] text-slate-500 mt-0.5">
                               {formatCNPJ(clinic.cnpj)}
                             </p>
+                            {clinic.assignedAttendantName ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 mt-1 whitespace-nowrap">
+                                <Headphones className="w-2.5 h-2.5 text-amber-600" />
+                                Atendente: {clinic.assignedAttendantName}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200 mt-1 whitespace-nowrap">
+                                Sem atendente na carteira
+                              </span>
+                            )}
                           </div>
                         </div>
                       </td>
 
                       {/* Technical Responsible */}
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 whitespace-nowrap">
                         <div>
                           <span className="font-mono font-bold text-indigo-950 bg-indigo-50/80 border border-indigo-100 px-2 py-0.5 rounded-md text-[11px] inline-flex items-center gap-1">
                             <Stethoscope className="w-3 h-3 text-indigo-600" />
                             {clinic.technicalResponsibleCrm}
                           </span>
-                          <p className="text-[11px] text-slate-600 mt-1 truncate max-w-[160px]">
+                          <p className="text-[11px] text-slate-600 mt-1 truncate max-w-[190px]">
                             {clinic.technicalResponsibleName || 'Responsável técnico'}
                           </p>
                         </div>
                       </td>
 
                       {/* Units */}
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 whitespace-nowrap">
                         <div>
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-sky-50 border border-sky-100 text-sky-800 rounded-md font-semibold text-[11px]">
                             <MapPin className="w-3 h-3 text-sky-600" />
                             {unitCount} {unitCount === 1 ? 'Unidade' : 'Unidades'}
                           </span>
-                          <p className="text-[11px] text-slate-500 mt-1 truncate max-w-[170px]">
+                          <p className="text-[11px] text-slate-500 mt-1 truncate max-w-[190px]">
                             {[clinic.city, clinic.state].filter(Boolean).join(' - ') || 'Brasil'}
                           </p>
                         </div>
                       </td>
 
                       {/* Contract & Validity */}
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 whitespace-nowrap">
                         <div>
                           <span
                             className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getContractStatusBadgeClass(
@@ -318,7 +339,7 @@ export const ClinicList: React.FC<ClinicListProps> = ({
                             {liveContract.label}
                           </span>
                           {clinic.contractEndDate && (
-                            <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                            <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1 whitespace-nowrap">
                               <Clock className="w-3 h-3 text-slate-400" />
                               Vigência:{' '}
                               {new Date(clinic.contractEndDate + 'T00:00:00').toLocaleDateString(
@@ -330,13 +351,13 @@ export const ClinicList: React.FC<ClinicListProps> = ({
                       </td>
 
                       {/* Members Count */}
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 whitespace-nowrap">
                         <div className="flex flex-col gap-0.5">
-                          <span className="inline-flex items-center gap-1 text-[11px] text-indigo-700 font-medium">
+                          <span className="inline-flex items-center gap-1 text-[11px] text-indigo-700 font-medium whitespace-nowrap">
                             <Stethoscope className="w-3 h-3" />
                             {doctors} {doctors === 1 ? 'Médico' : 'Médicos'}
                           </span>
-                          <span className="inline-flex items-center gap-1 text-[11px] text-sky-700 font-medium">
+                          <span className="inline-flex items-center gap-1 text-[11px] text-sky-700 font-medium whitespace-nowrap">
                             <Briefcase className="w-3 h-3" />
                             {secretaries} {secretaries === 1 ? 'Secretária' : 'Secretárias'}
                           </span>
@@ -344,9 +365,9 @@ export const ClinicList: React.FC<ClinicListProps> = ({
                       </td>
 
                       {/* Operational Status */}
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
                             clinic.status === 'ATIVO'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : 'bg-rose-50 text-rose-700 border border-rose-200'
@@ -366,14 +387,14 @@ export const ClinicList: React.FC<ClinicListProps> = ({
 
                       {/* Actions */}
                       <td
-                        className="py-4 px-4 sm:px-6 text-right"
+                        className="py-4 px-4 sm:px-6 text-right whitespace-nowrap"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => onViewClinic(clinic)}
-                            className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-semibold transition flex items-center gap-1"
+                            className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap"
                             title="Gerenciar Equipe, Unidades e Detalhes"
                           >
                             <Users className="w-3.5 h-3.5" />

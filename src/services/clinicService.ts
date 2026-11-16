@@ -60,6 +60,9 @@ export function mapDbToClinic(
     contractStartDate: row.contract_start_date || undefined,
     contractEndDate: row.contract_end_date || undefined,
     contractNotes: row.contract_notes || undefined,
+    assignedAttendantId: row.assigned_attendant_id || null,
+    assignedAttendantName: row.assigned_attendant_name || undefined,
+    assignedAttendantAvatar: row.assigned_attendant_avatar || undefined,
     units,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -127,10 +130,23 @@ export async function fetchClinicsFromSupabase(): Promise<MedicalClinic[]> {
 
     const allUnits: ClinicUnit[] = unitsData ? unitsData.map(mapDbToUnit) : [];
 
+    // Fetch users for attendant details
+    const { data: usersData } = await supabase
+      .from('crm_users')
+      .select('id, name, avatar');
+
+    const usersMap = new Map((usersData || []).map((u) => [u.id, u]));
+
     return clinicsData.map((row) => {
       const clinicMembers = allMembers.filter((m) => m.clinicId === row.id);
       const clinicUnits = allUnits.filter((u) => u.clinicId === row.id);
-      return mapDbToClinic(row, clinicMembers, clinicUnits);
+      const attendant = row.assigned_attendant_id ? usersMap.get(row.assigned_attendant_id) : undefined;
+      const enhancedRow = {
+        ...row,
+        assigned_attendant_name: attendant?.name,
+        assigned_attendant_avatar: attendant?.avatar,
+      };
+      return mapDbToClinic(enhancedRow, clinicMembers, clinicUnits);
     });
   } catch (err: any) {
     console.error('Falha geral ao buscar clínicas:', err);
@@ -164,6 +180,7 @@ export async function createClinicInSupabase(input: CreateClinicInput): Promise<
     contract_start_date: input.contractStartDate || null,
     contract_end_date: input.contractEndDate || null,
     contract_notes: input.contractNotes?.trim() || null,
+    assigned_attendant_id: input.assignedAttendantId || null,
   };
 
   const { data: clinicRow, error: clinicErr } = await supabase
@@ -265,6 +282,7 @@ export async function updateClinicInSupabase(
   if (updates.contractStartDate !== undefined) updatePayload.contract_start_date = updates.contractStartDate || null;
   if (updates.contractEndDate !== undefined) updatePayload.contract_end_date = updates.contractEndDate || null;
   if (updates.contractNotes !== undefined) updatePayload.contract_notes = updates.contractNotes.trim() || null;
+  if (updates.assignedAttendantId !== undefined) updatePayload.assigned_attendant_id = updates.assignedAttendantId || null;
 
   const { data: clinicData, error: clinicErr } = await supabase
     .from('crm_clinics')

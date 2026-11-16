@@ -54,7 +54,28 @@ export async function fetchUsersFromSupabase(): Promise<User[]> {
       return INITIAL_USERS;
     }
 
-    return data.map(mapDbToUser);
+    // Fetch attendant clinics associations to calculate portfolio size
+    const { data: assignments } = await supabase
+      .from('crm_attendant_clinics')
+      .select('attendant_id, clinic_id');
+
+    const attendantMap: Record<string, string[]> = {};
+    if (assignments) {
+      assignments.forEach((r) => {
+        if (!attendantMap[r.attendant_id]) {
+          attendantMap[r.attendant_id] = [];
+        }
+        attendantMap[r.attendant_id].push(r.clinic_id);
+      });
+    }
+
+    return data.map((row) => {
+      const user = mapDbToUser(row);
+      const clinicIds = attendantMap[user.id] || [];
+      user.assignedClinicsCount = clinicIds.length;
+      user.assignedClinicIds = clinicIds;
+      return user;
+    });
   } catch (err) {
     console.error('Error fetching users from Supabase:', err);
     return INITIAL_USERS;
@@ -434,13 +455,19 @@ export async function updateSupabaseUserByAdmin(
   id: string,
   updates: Partial<User>
 ): Promise<User> {
-  const updatePayload: Record<string, any> = {};
+  const updatePayload: Record<string, any> = {
+    updated_at: new Date().toISOString(),
+  };
 
   if (updates.status) updatePayload.status = updates.status;
   if (updates.role) updatePayload.role = updates.role;
   if (updates.department) updatePayload.department = updates.department;
-  if (updates.name) updatePayload.name = updates.name;
-  if (updates.phone !== undefined) updatePayload.phone = updates.phone;
+  if (updates.name) updatePayload.name = updates.name.trim();
+  if (updates.phone !== undefined) updatePayload.phone = updates.phone ? updates.phone.trim() : null;
+  if (updates.birthDate) updatePayload.birth_date = updates.birthDate;
+  if (updates.avatar) updatePayload.avatar = updates.avatar;
+  if (updates.cpf) updatePayload.cpf = updates.cpf.trim();
+  if (updates.email) updatePayload.email = updates.email.trim().toLowerCase();
 
   const { data, error } = await supabase
     .from('crm_users')

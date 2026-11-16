@@ -5,14 +5,13 @@ import {
   Menu,
   ChevronDown,
   Layers,
-  UserPlus,
   LogOut,
   User as UserIcon,
 } from 'lucide-react';
 
 interface HeaderProps {
   currentUser: User;
-  onOpenCreateModal: () => void;
+  onOpenCreateModal?: () => void;
   onToggleSidebarMobile: () => void;
   onLogout: () => void;
   onGoToProfile?: () => void;
@@ -20,7 +19,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   currentUser,
-  onOpenCreateModal,
   onToggleSidebarMobile,
   onLogout,
   onGoToProfile,
@@ -56,17 +54,6 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right: Quick actions & User Profile Menu */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Quick New User (Admin only) */}
-        {currentUser.role === 'ADMIN' && (
-          <button
-            onClick={onOpenCreateModal}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl border border-indigo-200/70 transition"
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            Novo Usuário
-          </button>
-        )}
-
         {/* User Profile Dropdown */}
         <div className="relative">
           <button
