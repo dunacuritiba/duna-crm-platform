@@ -600,7 +600,7 @@ export function App() {
       case 'overview':
         return 'Visão Geral do CRM';
       case 'users':
-        return 'Gestão • Usuários';
+        return 'Gestão de Usuários';
       case 'clinics':
         return currentUser?.role === 'ATENDENTE' ? 'Gestão • Minha Carteira' : 'Gestão • Clínicas Médicas';
       case 'portfolio':
