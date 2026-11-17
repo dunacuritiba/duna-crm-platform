@@ -44,9 +44,9 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
       {/* Main Profile Form */}
       <form onSubmit={handleSave} className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         {/* Cover / Header section */}
-        <div className="h-36 bg-gradient-to-r from-indigo-50 via-sky-50 to-slate-100 border-b border-slate-200/70 p-6 flex items-start justify-between">
+        <div className="bg-gradient-to-r from-indigo-50/90 via-sky-50/60 to-slate-100/80 border-b border-slate-200/80 px-6 sm:px-8 py-4 sm:py-5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider bg-white/80 backdrop-blur-xs px-3 py-1 rounded-full border border-slate-200/70 shadow-xs">
+            <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider bg-white/90 backdrop-blur-xs px-3 py-1 rounded-full border border-slate-200/80 shadow-2xs">
               Gestão de Perfil Pessoal
             </span>
           </div>
@@ -58,29 +58,29 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
 
         <div className="p-6 sm:p-8 space-y-8">
           {/* Avatar & Basic Identity */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 -mt-14 sm:-mt-16">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div className="relative group shrink-0">
               {avatar ? (
                 <img
                   src={avatar}
                   alt={currentUser.name}
-                  className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover border-4 border-white shadow-xl ring-2 ring-slate-200/80 bg-white"
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-2 border-slate-200/80 shadow-md ring-4 ring-indigo-50/60 bg-white"
                 />
               ) : (
-                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl border-4 border-white shadow-xl ring-2 ring-slate-200/80 bg-slate-100 flex items-center justify-center text-slate-400">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-2 border-slate-200/80 shadow-md ring-4 ring-indigo-50/60 bg-slate-100 flex items-center justify-center text-slate-400">
                   <UserIcon className="w-12 h-12" />
                 </div>
               )}
               <span
-                className="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-4 border-white rounded-full shadow-md ring-1 ring-emerald-600/20"
+                className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-xs ring-1 ring-emerald-600/20"
                 title="Online agora"
               />
             </div>
 
             {/* Identity Info */}
-            <div className="text-center sm:text-left pt-2 sm:pt-6 flex-1">
+            <div className="text-center sm:text-left flex-1 min-w-0">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   {currentUser.name}
                 </h2>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs">
