@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { UserRole } from '../../types/user';
 import { APP_CONFIG } from '../../config/version';
 import {
@@ -7,11 +7,12 @@ import {
   Building2,
   Target,
   UserCheck,
-  Lock,
   CalendarCheck,
   Briefcase,
   MessageSquare,
   LifeBuoy,
+  ChevronDown,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 export type NavTab =
@@ -47,76 +48,66 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const isAdmin = userRole === 'ADMIN';
   const isAttendant = userRole === 'ATENDENTE';
 
-  const navItems = [
-    {
-      id: 'overview' as NavTab,
-      label: 'Visão Geral',
-      icon: LayoutDashboard,
-      allowedRoles: ['ADMIN'] as UserRole[],
-      description: 'Métricas e resumo do CRM',
-    },
+  // Check if active tab belongs to the Management module
+  const isManagementTab = ['users', 'clinics', 'portfolio', 'agendas', 'leads'].includes(currentTab);
+  const [isManagementExpanded, setIsManagementExpanded] = useState<boolean>(true);
+
+  // Auto-expand whenever a management submenu is active
+  useEffect(() => {
+    if (isManagementTab) {
+      setIsManagementExpanded(true);
+    }
+  }, [isManagementTab]);
+
+  // Management Submenus definition
+  const managementSubItems = [
     {
       id: 'users' as NavTab,
       label: 'Gestão de Usuários',
       icon: Users,
       allowedRoles: ['ADMIN'] as UserRole[],
-      description: 'Listagem e criação de contas',
     },
     {
       id: 'clinics' as NavTab,
       label: isAttendant ? 'Minha Carteira' : 'Clínicas Médicas',
       icon: isAttendant ? Briefcase : Building2,
       allowedRoles: ['ADMIN', 'ATENDENTE'] as UserRole[],
-      description: isAttendant ? 'Clínicas sob sua gestão' : 'CNPJ, CRM e corpo clínico',
     },
     {
       id: 'portfolio' as NavTab,
       label: 'Gestão de Carteiras',
       icon: Briefcase,
       allowedRoles: ['ADMIN'] as UserRole[],
-      description: 'Distribuição de clientes por atendente',
     },
     {
       id: 'agendas' as NavTab,
       label: 'Gestão de Agendas',
       icon: CalendarCheck,
       allowedRoles: ['ADMIN', 'ATENDENTE'] as UserRole[],
-      description: 'Agendamentos e consultas dos pacientes',
     },
     {
       id: 'leads' as NavTab,
       label: 'Gestão de Leads',
       icon: Target,
       allowedRoles: ['ADMIN'] as UserRole[],
-      description: 'Captação e funil comercial',
     },
-    {
-      id: 'chat' as NavTab,
-      label: 'Chat Interno',
-      icon: MessageSquare,
-      allowedRoles: ['ADMIN', 'ATENDENTE', 'USUARIO'] as UserRole[],
-      description: 'Conversas em grupo e 1 a 1',
-    },
-    {
-      id: 'support' as NavTab,
-      label: 'Suporte & Chamados',
-      icon: LifeBuoy,
-      allowedRoles: ['ADMIN', 'ATENDENTE', 'USUARIO'] as UserRole[],
-      description: 'Abertura de chamados com SLA',
-    },
-    {
-      id: 'profile' as NavTab,
-      label: 'Meus Dados',
-      icon: UserCheck,
-      allowedRoles: ['ADMIN', 'ATENDENTE', 'USUARIO'] as UserRole[],
-      description: 'Foto e dados pessoais',
-    },
-  ];
+  ].filter((item) => item.allowedRoles.includes(userRole));
 
-  const handleTabClick = (tab: NavTab, allowedRoles: UserRole[]) => {
-    if (!allowedRoles.includes(userRole)) return;
-    onSelectTab(tab);
-    onCloseMobile();
+  const hasManagementAccess = managementSubItems.length > 0;
+
+  const handleManagementToggle = () => {
+    if (!isManagementExpanded) {
+      setIsManagementExpanded(true);
+      if (!isManagementTab) {
+        const first = managementSubItems[0];
+        if (first) {
+          onSelectTab(first.id);
+          onCloseMobile();
+        }
+      }
+    } else {
+      setIsManagementExpanded((prev) => !prev);
+    }
   };
 
   return (
@@ -135,74 +126,184 @@ export const Sidebar: React.FC<SidebarProps> = ({
           isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="space-y-6">
+        <div className="space-y-5 overflow-y-auto pr-0.5">
           {/* Section title */}
           <div className="px-3 pt-2">
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Navegação Principal
+              Navegação
             </p>
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-1.5">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentTab === item.id;
-              const isLocked = !item.allowedRoles.includes(userRole);
+          <nav className="space-y-1">
+            {/* 1. Visão Geral (Overview) - Admin only */}
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  onSelectTab('overview');
+                  onCloseMobile();
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  currentTab === 'overview'
+                    ? 'bg-indigo-50 text-indigo-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <LayoutDashboard className={`w-4 h-4 shrink-0 ${currentTab === 'overview' ? 'text-indigo-600' : ''}`} />
+                  <span className="truncate">Visão Geral</span>
+                </div>
+              </button>
+            )}
 
-              // Don't render locked items for non-admins if it's adminOnly like leads
-              if (isLocked && !isAdmin) {
-                return null;
-              }
-
-              return (
+            {/* 2. Parent "Gestão" with Submenus */}
+            {hasManagementAccess && (
+              <div className="space-y-1">
                 <button
-                  key={item.id}
                   type="button"
-                  onClick={() => handleTabClick(item.id, item.allowedRoles)}
-                  disabled={isLocked}
+                  onClick={handleManagementToggle}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
-                    isActive
-                      ? 'bg-indigo-50 text-indigo-700 shadow-xs'
-                      : isLocked
-                      ? 'opacity-40 text-slate-400 cursor-not-allowed bg-slate-50/50'
+                    isManagementTab
+                      ? 'bg-indigo-50/80 text-indigo-900 font-semibold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-indigo-600' : ''}`} />
-                    <span className="truncate">{item.label}</span>
+                    <SlidersHorizontal
+                      className={`w-4 h-4 shrink-0 ${isManagementTab ? 'text-indigo-600' : 'text-slate-400'}`}
+                    />
+                    <span className="truncate">Gestão</span>
                   </div>
-
-                  {/* Badge for Chat */}
-                  {item.id === 'chat' && chatUnreadCount > 0 && (
-                    <span
-                      className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-600 text-white min-w-4.5 shadow-2xs leading-none"
-                      title={`${chatUnreadCount} mensagens não lidas no chat`}
-                    >
-                      {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                  <div className="flex items-center gap-1.5 text-slate-400">
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600">
+                      {managementSubItems.length}
                     </span>
-                  )}
-
-                  {/* Badge for Support (Tickets where user is mentioned) */}
-                  {item.id === 'support' && ticketMentionCount > 0 && (
-                    <span
-                      className="ml-auto inline-flex items-center justify-center gap-0.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-white min-w-5 shadow-2xs leading-none"
-                      title={`${ticketMentionCount} chamado(s) onde você foi marcado`}
-                    >
-                      <span className="text-[9px] font-black">@</span>
-                      <span>{ticketMentionCount > 9 ? '9+' : ticketMentionCount}</span>
-                    </span>
-                  )}
-
-                  {isLocked && (
-                    <span className="text-[10px] font-semibold text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded flex items-center gap-1">
-                      <Lock className="w-2.5 h-2.5" /> Admin
-                    </span>
-                  )}
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isManagementExpanded ? 'rotate-0 text-slate-700' : '-rotate-90 text-slate-400'
+                      }`}
+                    />
+                  </div>
                 </button>
-              );
-            })}
+
+                {/* Submenus of Gestão */}
+                {isManagementExpanded && (
+                  <div className="pl-3 py-1 space-y-1 border-l-2 border-indigo-100 ml-4.5 my-1 animate-in slide-in-from-top-1 duration-150">
+                    {managementSubItems.map((subItem) => {
+                      const isSubActive = currentTab === subItem.id;
+                      const SubIcon = subItem.icon;
+
+                      return (
+                        <button
+                          key={subItem.id}
+                          type="button"
+                          onClick={() => {
+                            onSelectTab(subItem.id);
+                            onCloseMobile();
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                            isSubActive
+                              ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <SubIcon className={`w-3.5 h-3.5 shrink-0 ${isSubActive ? 'text-white' : 'text-slate-400'}`} />
+                            <span className="truncate">{subItem.label}</span>
+                          </div>
+                          {isSubActive && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Section Divider: Comunicação & Atendimento */}
+            <div className="pt-3 pb-1 px-3">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Comunicação
+              </p>
+            </div>
+
+            {/* 3. Chat Interno */}
+            <button
+              type="button"
+              onClick={() => {
+                onSelectTab('chat');
+                onCloseMobile();
+              }}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                currentTab === 'chat'
+                  ? 'bg-indigo-50 text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <MessageSquare className={`w-4 h-4 shrink-0 ${currentTab === 'chat' ? 'text-indigo-600' : ''}`} />
+                <span className="truncate">Chat Interno</span>
+              </div>
+              {chatUnreadCount > 0 && (
+                <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-600 text-white min-w-4.5 shadow-2xs leading-none">
+                  {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* 4. Suporte & Chamados */}
+            <button
+              type="button"
+              onClick={() => {
+                onSelectTab('support');
+                onCloseMobile();
+              }}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                currentTab === 'support'
+                  ? 'bg-indigo-50 text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <LifeBuoy className={`w-4 h-4 shrink-0 ${currentTab === 'support' ? 'text-indigo-600' : ''}`} />
+                <span className="truncate">Suporte & Chamados</span>
+              </div>
+              {ticketMentionCount > 0 && (
+                <span className="ml-auto inline-flex items-center justify-center gap-0.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-white min-w-5 shadow-2xs leading-none">
+                  <span className="text-[9px] font-black">@</span>
+                  <span>{ticketMentionCount > 9 ? '9+' : ticketMentionCount}</span>
+                </span>
+              )}
+            </button>
+
+            {/* Section Divider: Pessoal */}
+            <div className="pt-3 pb-1 px-3">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Conta
+              </p>
+            </div>
+
+            {/* 5. Meus Dados */}
+            <button
+              type="button"
+              onClick={() => {
+                onSelectTab('profile');
+                onCloseMobile();
+              }}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                currentTab === 'profile'
+                  ? 'bg-indigo-50 text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <UserCheck className={`w-4 h-4 shrink-0 ${currentTab === 'profile' ? 'text-indigo-600' : ''}`} />
+                <span className="truncate">Meus Dados</span>
+              </div>
+            </button>
           </nav>
         </div>
 

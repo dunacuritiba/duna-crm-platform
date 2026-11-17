@@ -94,7 +94,16 @@ import { VerifyOtpView } from './components/auth/VerifyOtpView';
 import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
 import { ResetPasswordView } from './components/auth/ResetPasswordView';
 import { ScreenLoading } from './components/common/ScreenLoading';
-import { Building2, Target, Loader2, Layers } from 'lucide-react';
+import {
+  Building2,
+  Target,
+  Loader2,
+  Layers,
+  Users,
+  Briefcase,
+  CalendarCheck,
+  SlidersHorizontal,
+} from 'lucide-react';
 
 export function App() {
   const [users, setUsers] = useState<User[]>([]);
@@ -539,20 +548,67 @@ export function App() {
     }, 240);
   };
 
+  const isManagementTab = ['users', 'clinics', 'portfolio', 'agendas', 'leads'].includes(currentTab);
+
+  const managementSubTabs = useMemo(() => {
+    if (!currentUser) return [];
+    const isAttendant = currentUser.role === 'ATENDENTE';
+
+    const items = [
+      {
+        id: 'users' as NavTab,
+        label: 'Usuários',
+        icon: Users,
+        description: 'Contas e acessos',
+        allowedRoles: ['ADMIN'],
+      },
+      {
+        id: 'clinics' as NavTab,
+        label: isAttendant ? 'Minha Carteira' : 'Clínicas Médicas',
+        icon: isAttendant ? Briefcase : Building2,
+        description: 'CNPJ e contratos',
+        allowedRoles: ['ADMIN', 'ATENDENTE'],
+      },
+      {
+        id: 'portfolio' as NavTab,
+        label: 'Carteiras de Clientes',
+        icon: Briefcase,
+        description: 'Distribuição de clientes',
+        allowedRoles: ['ADMIN'],
+      },
+      {
+        id: 'agendas' as NavTab,
+        label: 'Agendas & Consultas',
+        icon: CalendarCheck,
+        description: 'Pacientes e horários',
+        allowedRoles: ['ADMIN', 'ATENDENTE'],
+      },
+      {
+        id: 'leads' as NavTab,
+        label: 'Funil de Leads',
+        icon: Target,
+        description: 'Captação comercial',
+        allowedRoles: ['ADMIN'],
+      },
+    ];
+
+    return items.filter((item) => item.allowedRoles.includes(currentUser.role));
+  }, [currentUser]);
+
   const getTabTitle = (tab: NavTab) => {
     switch (tab) {
       case 'overview':
         return 'Visão Geral do CRM';
       case 'users':
-        return 'Gestão de Usuários';
+        return 'Gestão • Usuários';
       case 'clinics':
-        return currentUser?.role === 'ATENDENTE' ? 'Minha Carteira de Clientes' : 'Clínicas Médicas';
+        return currentUser?.role === 'ATENDENTE' ? 'Gestão • Minha Carteira' : 'Gestão • Clínicas Médicas';
       case 'portfolio':
-        return 'Gestão de Carteiras de Clientes';
+        return 'Gestão • Carteiras de Clientes';
       case 'agendas':
-        return 'Gestão de Agendas dos Clientes';
+        return 'Gestão • Agendas & Consultas';
       case 'leads':
-        return 'Gestão de Leads & Prospecção';
+        return 'Gestão • Funil de Leads & Prospecção';
       case 'chat':
         return 'Chat Interno da Plataforma';
       case 'support':
@@ -1197,6 +1253,39 @@ export function App() {
               </button>
             )}
           </div>
+
+          {/* Submenus de Gestão Bar (exibido em todas as views de gestão) */}
+          {isManagementTab && managementSubTabs.length > 0 && (
+            <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-2xs mb-6">
+              <div className="flex items-center gap-1.5 overflow-x-auto">
+                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 mr-1 border-r border-slate-100">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Submenus de Gestão:</span>
+                </div>
+
+                {managementSubTabs.map((subTab) => {
+                  const SubIcon = subTab.icon;
+                  const isActive = currentTab === subTab.id;
+
+                  return (
+                    <button
+                      key={subTab.id}
+                      type="button"
+                      onClick={() => handleSelectTab(subTab.id)}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition whitespace-nowrap shrink-0 ${
+                        isActive
+                          ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                      }`}
+                    >
+                      <SubIcon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <span>{subTab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Conditional View by Tab: Loading indicator during screen transition or active data fetch */}
           {isTabLoading ? (
