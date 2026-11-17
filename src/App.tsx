@@ -602,13 +602,13 @@ export function App() {
       case 'users':
         return 'Gestão de Usuários';
       case 'clinics':
-        return currentUser?.role === 'ATENDENTE' ? 'Gestão • Minha Carteira' : 'Gestão • Clínicas Médicas';
+        return currentUser?.role === 'ATENDENTE' ? 'Gestão da Minha Carteira' : 'Gestão de Clínicas Médicas';
       case 'portfolio':
-        return 'Gestão • Carteiras de Clientes';
+        return 'Gestão de Carteiras de Clientes';
       case 'agendas':
-        return 'Gestão • Agendas & Consultas';
+        return 'Gestão de Agendas & Consultas';
       case 'leads':
-        return 'Gestão • Funil de Leads & Prospecção';
+        return 'Gestão de Funil de Leads & Prospecção';
       case 'chat':
         return 'Chat Interno da Plataforma';
       case 'support':
