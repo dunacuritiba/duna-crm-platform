@@ -188,14 +188,20 @@ export const UserList: React.FC<UserListProps> = ({
       </div>
 
       {/* Desktop & Tablet Table View */}
-      <div className="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600 min-w-[680px]">
+          <table className="w-full text-left text-sm text-slate-600 min-w-[760px] table-fixed">
+            <colgroup>
+              <col className="w-auto" />
+              <col className="w-64" />
+              <col className="w-36" />
+              <col className="w-48" />
+            </colgroup>
             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-6 whitespace-nowrap">Usuário</th>
-                <th className="py-3.5 px-4 text-center whitespace-nowrap">Perfil</th>
-                <th className="py-3.5 px-4 text-center whitespace-nowrap">Status</th>
+                <th className="py-3.5 px-6 text-left whitespace-nowrap">Usuário</th>
+                <th className="py-3.5 px-4 text-left whitespace-nowrap">Perfil</th>
+                <th className="py-3.5 px-4 text-left whitespace-nowrap">Status</th>
                 <th className="py-3.5 px-6 text-right whitespace-nowrap">Ações</th>
               </tr>
             </thead>
@@ -219,7 +225,7 @@ export const UserList: React.FC<UserListProps> = ({
                       }`}
                     >
                       {/* User info */}
-                      <td className="py-4 px-6 whitespace-nowrap">
+                      <td className="py-4 px-6 whitespace-nowrap text-left">
                         <div className="flex items-center gap-3.5">
                           <div className="relative inline-block shrink-0">
                             <img
@@ -263,8 +269,8 @@ export const UserList: React.FC<UserListProps> = ({
                       </td>
 
                       {/* Role & Portfolio */}
-                      <td className="py-4 px-4 whitespace-nowrap text-center">
-                        <div className="inline-flex items-center justify-center gap-2">
+                      <td className="py-4 px-4 whitespace-nowrap text-left">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <RoleBadge role={user.role} />
                           {user.role === 'ATENDENTE' && (
                             <button
@@ -281,8 +287,8 @@ export const UserList: React.FC<UserListProps> = ({
                       </td>
 
                       {/* Status */}
-                      <td className="py-4 px-4 whitespace-nowrap text-center">
-                        <div className="inline-flex items-center justify-center">
+                      <td className="py-4 px-4 whitespace-nowrap text-left">
+                        <div className="flex items-center">
                           <StatusBadge status={user.status} />
                         </div>
                       </td>

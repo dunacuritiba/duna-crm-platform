@@ -234,17 +234,26 @@ export const ClinicList: React.FC<ClinicListProps> = ({
           )}
         </div>
       ) : (
-        <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden">
+        <div className="bg-white border border-slate-200/80 rounded-2xl shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse min-w-[980px]">
+            <table className="w-full text-left text-xs border-collapse min-w-[980px] table-fixed">
+              <colgroup>
+                <col className="w-[26%]" />
+                <col className="w-[16%]" />
+                <col className="w-[15%]" />
+                <col className="w-[16%]" />
+                <col className="w-[11%]" />
+                <col className="w-[8%]" />
+                <col className="w-[8%]" />
+              </colgroup>
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Clínica & Logo</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap">Responsável Técnico</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap">Unidades / Atendimento</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap">Contrato & Vigência</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap">Corpo Clínico</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap">Status</th>
+                  <th className="py-3.5 px-4 sm:px-6 text-left whitespace-nowrap">Clínica & Logo</th>
+                  <th className="py-3.5 px-4 text-left whitespace-nowrap">Responsável Técnico</th>
+                  <th className="py-3.5 px-4 text-left whitespace-nowrap">Unidades / Atendimento</th>
+                  <th className="py-3.5 px-4 text-left whitespace-nowrap">Contrato & Vigência</th>
+                  <th className="py-3.5 px-4 text-left whitespace-nowrap">Corpo Clínico</th>
+                  <th className="py-3.5 px-4 text-left whitespace-nowrap">Status</th>
                   <th className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">Ações</th>
                 </tr>
               </thead>

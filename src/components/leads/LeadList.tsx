@@ -357,15 +357,24 @@ export const LeadList: React.FC<LeadListProps> = ({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse min-w-[920px]">
+              <table className="w-full text-left text-xs border-collapse min-w-[920px] table-fixed">
+                <colgroup>
+                  <col className="w-[24%]" />
+                  <col className="w-[17%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[12%]" />
+                  <col className="w-[10%]" />
+                  <col className="w-[8%]" />
+                </colgroup>
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-                    <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Lead / Instituição</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap">Pessoa Decisora</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap">Estágio</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap">Temperatura</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap">Valor Estimado</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap">Localização</th>
+                    <th className="py-3.5 px-4 sm:px-6 text-left whitespace-nowrap">Lead / Instituição</th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Pessoa Decisora</th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Estágio</th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Temperatura</th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Valor Estimado</th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Localização</th>
                     <th className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>

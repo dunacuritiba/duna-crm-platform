@@ -9,6 +9,8 @@ import {
   Filter,
   CheckCircle2,
   Eye,
+  Clock,
+  AlertCircle,
 } from 'lucide-react';
 
 interface TicketListProps {
@@ -51,6 +53,22 @@ export const TicketList: React.FC<TicketListProps> = ({
     return tickets.filter((t) => isUnviewedMention(t)).length;
   }, [tickets, currentUser?.id, viewedMentionTicketIds]);
 
+  // Top KPI Metrics
+  const metrics = useMemo(() => {
+    const total = tickets.length;
+    const open = tickets.filter((t) => t.status === 'ABERTO').length;
+    const inProgress = tickets.filter((t) => t.status === 'EM_ANDAMENTO').length;
+    const resolved = tickets.filter((t) => t.status === 'RESOLVIDO' || t.status === 'FECHADO').length;
+
+    const atRiskOrExpired = tickets.filter((t) => {
+      if (t.status === 'RESOLVIDO' || t.status === 'FECHADO') return false;
+      const sla = calculateSlaInfo(t.slaDeadline, t.createdAt);
+      return sla.status === 'AT_RISK' || sla.status === 'EXPIRED';
+    }).length;
+
+    return { total, open, inProgress, resolved, atRiskOrExpired };
+  }, [tickets]);
+
   const filteredTickets = useMemo(() => {
     return tickets.filter((t) => {
       const matchSearch =
@@ -77,31 +95,31 @@ export const TicketList: React.FC<TicketListProps> = ({
     switch (status) {
       case 'ABERTO':
         return (
-          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center justify-center w-28 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
             Aberto
           </span>
         );
       case 'EM_ANDAMENTO':
         return (
-          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
+          <span className="inline-flex items-center justify-center w-28 text-[11px] font-bold px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
             Em Andamento
           </span>
         );
       case 'AGUARDANDO_USUARIO':
         return (
-          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
+          <span className="inline-flex items-center justify-center w-28 text-[11px] font-bold px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
             Aguardando
           </span>
         );
       case 'RESOLVIDO':
         return (
-          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="inline-flex items-center justify-center w-28 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
             Resolvido
           </span>
         );
       case 'FECHADO':
         return (
-          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+          <span className="inline-flex items-center justify-center w-28 text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
             Fechado
           </span>
         );
@@ -112,25 +130,25 @@ export const TicketList: React.FC<TicketListProps> = ({
     switch (priority) {
       case 'CRITICA':
         return (
-          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+          <span className="inline-flex items-center justify-center w-20 text-[10px] font-extrabold px-2 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 tracking-wider">
             CRÍTICA
           </span>
         );
       case 'ALTA':
         return (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
+          <span className="inline-flex items-center justify-center w-20 text-[10px] font-bold px-2 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200 tracking-wider">
             ALTA
           </span>
         );
       case 'MEDIA':
         return (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center justify-center w-20 text-[10px] font-bold px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 tracking-wider">
             MÉDIA
           </span>
         );
       default:
         return (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+          <span className="inline-flex items-center justify-center w-20 text-[10px] font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200 tracking-wider">
             BAIXA
           </span>
         );
@@ -140,8 +158,9 @@ export const TicketList: React.FC<TicketListProps> = ({
   const renderSlaBadge = (ticket: Ticket) => {
     if (ticket.status === 'RESOLVIDO' || ticket.status === 'FECHADO') {
       return (
-        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-          <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Concluído
+        <span className="inline-flex items-center justify-center w-36 gap-1.5 text-[11px] font-medium text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+          <span>Concluído</span>
         </span>
       );
     }
@@ -150,36 +169,85 @@ export const TicketList: React.FC<TicketListProps> = ({
 
     if (sla.status === 'EXPIRED') {
       return (
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
-          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-          {sla.remainingText}
+        <span className="inline-flex items-center justify-center w-36 gap-1.5 text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full">
+          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+          <span className="truncate">{sla.remainingText}</span>
         </span>
       );
     }
 
     if (sla.status === 'AT_RISK') {
       return (
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-          {sla.remainingText}
+        <span className="inline-flex items-center justify-center w-36 gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+          <span className="truncate">{sla.remainingText}</span>
         </span>
       );
     }
 
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-        {sla.remainingText}
+      <span className="inline-flex items-center justify-center w-36 gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+        <span className="truncate">{sla.remainingText}</span>
       </span>
     );
   };
 
   return (
     <div className="space-y-6">
-      {/* Top Banner / Actions */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+      {/* Top Metrics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Total */}
+        <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider">Total de Chamados</span>
+            <LifeBuoy className="w-4 h-4 text-indigo-600" />
+          </div>
+          <p className="text-2xl font-bold text-slate-800">{metrics.total}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">{metrics.resolved} finalizados / fechados</p>
+        </div>
+
+        {/* Card 2: Em Atendimento */}
+        <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider">Em Atendimento</span>
+            <Clock className="w-4 h-4 text-sky-600" />
+          </div>
+          <p className="text-2xl font-bold text-sky-700">{metrics.open + metrics.inProgress}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">{metrics.open} abertos • {metrics.inProgress} em curso</p>
+        </div>
+
+        {/* Card 3: SLA em Risco */}
+        <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider">SLA Crítico / Risco</span>
+            <AlertCircle className="w-4 h-4 text-rose-600" />
+          </div>
+          <p className="text-2xl font-bold text-rose-700">{metrics.atRiskOrExpired}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Prazo expirando ou vencido</p>
+        </div>
+
+        {/* Card 4: Marcados para Você */}
+        <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider">Marcados para Mim</span>
+            <span className="font-mono text-sm font-black text-amber-600">@</span>
+          </div>
+          <p className="text-2xl font-bold text-amber-700">{totalMentionedCount}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            {unreadMentionCount > 0 ? (
+              <span className="text-amber-600 font-bold">{unreadMentionCount} nova(s) pendente(s)</span>
+            ) : (
+              'Todas visualizadas'
+            )}
+          </p>
+        </div>
+      </div>
+
+      {/* Top Banner / Actions & Filter Bar */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {/* Search */}
+          {/* Search Box */}
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -189,12 +257,13 @@ export const TicketList: React.FC<TicketListProps> = ({
               placeholder="Buscar por #código, título, tag (#bug) ou solicitante..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition"
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/90 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition"
             />
           </div>
 
           {/* New Ticket Button */}
           <button
+            type="button"
             onClick={onOpenCreateModal}
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white text-sm font-semibold rounded-xl shadow-xs transition shrink-0"
           >
@@ -204,16 +273,17 @@ export const TicketList: React.FC<TicketListProps> = ({
         </div>
 
         {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
-          <span className="text-slate-400 font-medium flex items-center gap-1 mr-1">
+        <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100 text-xs">
+          <span className="text-slate-400 font-medium flex items-center gap-1 mr-1 whitespace-nowrap">
             <Filter className="w-3.5 h-3.5" /> Filtros:
           </span>
 
           <button
+            type="button"
             onClick={() => setStatusFilter('ALL')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
               statusFilter === 'ALL'
-                ? 'bg-slate-900 text-white'
+                ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
@@ -221,10 +291,11 @@ export const TicketList: React.FC<TicketListProps> = ({
           </button>
 
           <button
+            type="button"
             onClick={() => setStatusFilter('ABERTO')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
               statusFilter === 'ABERTO'
-                ? 'bg-amber-600 text-white'
+                ? 'bg-amber-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
@@ -232,10 +303,11 @@ export const TicketList: React.FC<TicketListProps> = ({
           </button>
 
           <button
+            type="button"
             onClick={() => setStatusFilter('EM_ANDAMENTO')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
               statusFilter === 'EM_ANDAMENTO'
-                ? 'bg-sky-600 text-white'
+                ? 'bg-sky-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
@@ -243,21 +315,23 @@ export const TicketList: React.FC<TicketListProps> = ({
           </button>
 
           <button
+            type="button"
             onClick={() => setStatusFilter('RESOLVIDO')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
               statusFilter === 'RESOLVIDO'
-                ? 'bg-emerald-600 text-white'
+                ? 'bg-emerald-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            Resolvidos ({tickets.filter((t) => t.status === 'RESOLVIDO').length})
+            Resolvidos ({tickets.filter((t) => t.status === 'RESOLVIDO' || t.status === 'FECHADO').length})
           </button>
 
           <button
+            type="button"
             onClick={() => setStatusFilter(statusFilter === 'SLA_RISK' ? 'ALL' : 'SLA_RISK')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition flex items-center gap-1.5 ${
               statusFilter === 'SLA_RISK'
-                ? 'bg-rose-600 text-white'
+                ? 'bg-rose-600 text-white shadow-xs'
                 : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200'
             }`}
           >
@@ -270,9 +344,9 @@ export const TicketList: React.FC<TicketListProps> = ({
               <button
                 type="button"
                 onClick={() => setStatusFilter(statusFilter === 'MENTIONED' ? 'ALL' : 'MENTIONED')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition flex items-center gap-1.5 ${
                   statusFilter === 'MENTIONED'
-                    ? 'bg-amber-600 text-white font-bold shadow-2xs'
+                    ? 'bg-amber-600 text-white font-bold shadow-xs'
                     : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
                 }`}
               >
@@ -285,7 +359,7 @@ export const TicketList: React.FC<TicketListProps> = ({
                     }`}
                     title={`${unreadMentionCount} nova(s) marcação(ões) não visualizada(s)`}
                   >
-                    {unreadMentionCount} nova(s)
+                    {unreadMentionCount} novo(s)
                   </span>
                 ) : totalMentionedCount > 0 ? (
                   <span
@@ -302,7 +376,7 @@ export const TicketList: React.FC<TicketListProps> = ({
                 <button
                   type="button"
                   onClick={onMarkAllMentionsAsViewed}
-                  className="px-2.5 py-1.5 rounded-lg font-medium text-amber-800 hover:text-amber-950 hover:bg-amber-100 transition flex items-center gap-1 border border-amber-200 text-xs"
+                  className="px-2.5 py-1.5 rounded-lg font-medium text-amber-800 hover:text-amber-950 hover:bg-amber-100 transition flex items-center gap-1 border border-amber-200 text-xs whitespace-nowrap"
                   title="Marcar todas as marcações como visualizadas"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
@@ -315,15 +389,22 @@ export const TicketList: React.FC<TicketListProps> = ({
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600 min-w-[700px]">
+          <table className="w-full text-left text-sm text-slate-600 min-w-[840px] table-fixed">
+            <colgroup>
+              <col className="w-auto" />
+              <col className="w-32" />
+              <col className="w-40" />
+              <col className="w-48" />
+              <col className="w-28" />
+            </colgroup>
             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-6 whitespace-nowrap">Chamado / Título</th>
-                <th className="py-3.5 px-4 text-center whitespace-nowrap">Prioridade</th>
-                <th className="py-3.5 px-4 text-center whitespace-nowrap">Status</th>
-                <th className="py-3.5 px-4 text-center whitespace-nowrap">SLA Restante</th>
+                <th className="py-3.5 px-6 text-left whitespace-nowrap">Chamado / Título</th>
+                <th className="py-3.5 px-4 text-left whitespace-nowrap">Prioridade</th>
+                <th className="py-3.5 px-4 text-left whitespace-nowrap">Status</th>
+                <th className="py-3.5 px-4 text-left whitespace-nowrap">SLA Restante</th>
                 <th className="py-3.5 px-6 text-right whitespace-nowrap">Ações</th>
               </tr>
             </thead>
@@ -343,19 +424,19 @@ export const TicketList: React.FC<TicketListProps> = ({
                     className="hover:bg-slate-50/70 transition-colors cursor-pointer group"
                   >
                     {/* Number & Title */}
-                    <td className="py-4 px-6">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+                    <td className="py-4 px-6 text-left">
+                      <div className="space-y-1 min-w-0 pr-4">
+                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                          <span className="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100 shrink-0">
                             {ticket.ticketNumber}
                           </span>
-                          <span className="font-bold text-slate-800 group-hover:text-indigo-600 transition truncate max-w-sm">
+                          <span className="font-bold text-slate-800 group-hover:text-indigo-600 transition truncate min-w-0">
                             {ticket.title}
                           </span>
                           {currentUser?.id && ticket.mentionedUserIds?.includes(currentUser.id) && (
                             isUnviewedMention(ticket) ? (
                               <span
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-2xs animate-pulse"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-2xs shrink-0 animate-pulse"
                                 title="Você foi marcado neste chamado e ainda não visualizou"
                               >
                                 <span className="font-black text-[9px]">@</span>
@@ -363,7 +444,7 @@ export const TicketList: React.FC<TicketListProps> = ({
                               </span>
                             ) : (
                               <span
-                                className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200"
+                                className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 shrink-0"
                                 title="Você está marcado neste chamado (já visualizado)"
                               >
                                 <span className="font-bold text-[9px] text-amber-600">@</span>
@@ -379,15 +460,15 @@ export const TicketList: React.FC<TicketListProps> = ({
                           {ticket.tags && ticket.tags.length > 0 && (
                             <>
                               <span>•</span>
-                              <div className="flex items-center gap-1">
-                                {ticket.tags.slice(0, 2).map((t) => (
-                                  <span key={t} className="text-[10px] text-slate-500">
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {ticket.tags.slice(0, 3).map((t) => (
+                                  <span key={t} className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded">
                                     #{t}
                                   </span>
                                 ))}
-                                {ticket.tags.length > 2 && (
+                                {ticket.tags.length > 3 && (
                                   <span className="text-[10px] text-slate-400">
-                                    +{ticket.tags.length - 2}
+                                    +{ticket.tags.length - 3}
                                   </span>
                                 )}
                               </div>
@@ -398,33 +479,35 @@ export const TicketList: React.FC<TicketListProps> = ({
                     </td>
 
                     {/* Priority */}
-                    <td className="py-4 px-4 text-center whitespace-nowrap">
+                    <td className="py-4 px-4 text-left whitespace-nowrap align-middle">
                       {renderPriorityBadge(ticket.priority)}
                     </td>
 
                     {/* Status */}
-                    <td className="py-4 px-4 text-center whitespace-nowrap">
+                    <td className="py-4 px-4 text-left whitespace-nowrap align-middle">
                       {renderStatusBadge(ticket.status)}
                     </td>
 
                     {/* SLA countdown */}
-                    <td className="py-4 px-4 text-center whitespace-nowrap">
+                    <td className="py-4 px-4 text-left whitespace-nowrap align-middle">
                       {renderSlaBadge(ticket)}
                     </td>
 
                     {/* Actions */}
-                    <td className="py-4 px-6 text-right whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onViewTicket(ticket);
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border border-slate-200 rounded-xl text-xs font-semibold transition"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        Detalhes
-                      </button>
+                    <td className="py-4 px-6 text-right whitespace-nowrap align-middle">
+                      <div className="flex items-center justify-end">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewTicket(ticket);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border border-slate-200 rounded-xl text-xs font-semibold transition"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Detalhes
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -387,9 +387,17 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
       </div>
 
       {/* Appointments Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600 min-w-[880px]">
+          <table className="w-full text-left text-xs text-slate-600 min-w-[880px] table-fixed">
+            <colgroup>
+              <col className="w-36" />
+              <col className="w-52" />
+              <col className="w-auto" />
+              <col className="w-48" />
+              <col className="w-36" />
+              <col className="w-28" />
+            </colgroup>
             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
                 <th className="py-3 px-4 whitespace-nowrap">Horário / Data</th>
