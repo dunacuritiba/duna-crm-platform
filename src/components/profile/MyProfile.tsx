@@ -111,6 +111,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({ currentUser, onUpdateProfi
             onChange={(img) => setAvatar(img)}
             label="Alterar Foto de Perfil"
             helperText="Selecione um arquivo de foto do computador ou capture uma nova imagem com a câmera."
+            showCurrentPreview={false}
           />
 
           {/* Form Fields: Distinguish Editable vs Locked */}

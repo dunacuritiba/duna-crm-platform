@@ -6,6 +6,7 @@ interface PhotoUploaderProps {
   onChange: (base64OrUrl: string) => void;
   label?: string;
   helperText?: string;
+  showCurrentPreview?: boolean;
 }
 
 export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
@@ -13,6 +14,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
   onChange,
   label = 'Foto de Perfil',
   helperText = 'Formatos suportados: JPG, PNG ou WebP (máx. 3MB)',
+  showCurrentPreview = true,
 }) => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -171,8 +173,8 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       )}
 
       {/* Main Upload / Preview Box */}
-      {value ? (
-        /* State 1: Photo is selected/uploaded */
+      {value && showCurrentPreview ? (
+        /* State 1: Photo is selected/uploaded and preview is enabled */
         <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-emerald-50/40 border border-emerald-200/80 rounded-2xl">
           <div className="relative shrink-0">
             <img
@@ -226,7 +228,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
           </div>
         </div>
       ) : (
-        /* State 2: No photo yet -> Clean Drag and Drop / Upload Zone */
+        /* State 2: Upload Zone (used when no photo or when preview is displayed elsewhere like profile header) */
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -244,7 +246,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
 
             <div>
               <p className="text-xs sm:text-sm font-semibold text-slate-800">
-                Suba sua foto de perfil
+                {showCurrentPreview ? 'Suba sua foto de perfil' : 'Alterar foto de perfil'}
               </p>
               <p className="text-[11px] text-slate-500 mt-0.5">
                 Arraste o arquivo até aqui ou utilize um dos botões abaixo:
@@ -259,7 +261,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition inline-flex items-center gap-1.5"
               >
                 <Upload className="w-3.5 h-3.5" />
-                Selecionar Arquivo
+                Selecionar Novo Arquivo
               </button>
 
               {/* Camera button */}
