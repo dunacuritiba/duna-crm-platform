@@ -651,6 +651,19 @@ export function App() {
           ? 'Painel da Equipe de Atendimento e Carteira liberados.'
           : 'Acesso restrito ao seu painel "Meus Dados".'
       );
+    } catch (err: any) {
+      if (err?.code === 'ACCOUNT_PENDING') {
+        const targetEmail = err.email || email.trim().toLowerCase();
+        setOtpEmail(targetEmail);
+        setAuthScreen('verify-registration-otp');
+        addToast(
+          'info',
+          'Código OTP enviado!',
+          `Conta pendente de ativação. Enviamos um novo código de verificação para ${targetEmail}.`
+        );
+        return;
+      }
+      throw err;
     } finally {
       setIsAuthLoading(false);
     }

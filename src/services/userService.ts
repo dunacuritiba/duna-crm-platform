@@ -544,8 +544,29 @@ export async function loginUser(email: string, password: string): Promise<User> 
 
   // Rule: Check if account is still pending verification
   if (userRow.status === 'PENDENTE' || userRow.is_verified === false) {
+    // Generate fresh OTP, update user in Supabase, and dispatch real email via Supabase Edge Function
+    const otpCode = generateOTP();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 min validity
+
+    await supabase
+      .from('crm_users')
+      .update({
+        otp_code: otpCode,
+        otp_type: 'REGISTRATION',
+        otp_expires_at: expiresAt,
+      })
+      .eq('id', userRow.id);
+
+    // Send email using Supabase Edge Function
+    await sendOtpEmail({
+      email: normalizedEmail,
+      name: userRow.name,
+      otpCode,
+      type: 'REGISTRATION',
+    });
+
     const err = new Error(
-      'Sua conta está pendente de ativação. Por favor, acesse seu e-mail e confirme o código OTP para liberar o acesso.'
+      'Sua conta está pendente de ativação. Enviamos um novo código de verificação OTP para seu e-mail.'
     );
     (err as any).code = 'ACCOUNT_PENDING';
     (err as any).email = userRow.email;
