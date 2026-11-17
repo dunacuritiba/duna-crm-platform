@@ -11,6 +11,9 @@ import {
   Eye,
   Clock,
   AlertCircle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 
 interface TicketListProps {
@@ -22,6 +25,9 @@ interface TicketListProps {
   onMarkAllMentionsAsViewed?: () => void;
 }
 
+type TicketSortField = 'ticketNumber' | 'title' | 'priority' | 'status' | 'slaDeadline' | 'createdAt';
+type SortDirection = 'asc' | 'desc';
+
 export const TicketList: React.FC<TicketListProps> = ({
   tickets,
   currentUser,
@@ -32,6 +38,17 @@ export const TicketList: React.FC<TicketListProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | TicketStatus | 'SLA_RISK' | 'MENTIONED'>('ALL');
+  const [sortField, setSortField] = useState<TicketSortField>('createdAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  const handleSort = (field: TicketSortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const isUnviewedMention = (t: Ticket) => {
     if (!currentUser?.id || !t.mentionedUserIds?.includes(currentUser.id)) return false;
@@ -90,6 +107,50 @@ export const TicketList: React.FC<TicketListProps> = ({
       return t.status === statusFilter;
     });
   }, [tickets, search, statusFilter, currentUser?.id]);
+
+  const sortedTickets = useMemo(() => {
+    return [...filteredTickets].sort((a, b) => {
+      let comparison = 0;
+      if (sortField === 'ticketNumber') {
+        comparison = a.ticketNumber.localeCompare(b.ticketNumber);
+      } else if (sortField === 'title') {
+        comparison = a.title.localeCompare(b.title);
+      } else if (sortField === 'priority') {
+        const priorityOrder: Record<string, number> = {
+          CRITICA: 4,
+          ALTA: 3,
+          MEDIA: 2,
+          BAIXA: 1,
+        };
+        comparison = (priorityOrder[a.priority] || 0) - (priorityOrder[b.priority] || 0);
+      } else if (sortField === 'status') {
+        const statusOrder: Record<string, number> = {
+          ABERTO: 1,
+          EM_ANDAMENTO: 2,
+          AGUARDANDO_USUARIO: 3,
+          RESOLVIDO: 4,
+          FECHADO: 5,
+        };
+        comparison = (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
+      } else if (sortField === 'slaDeadline') {
+        comparison = new Date(a.slaDeadline).getTime() - new Date(b.slaDeadline).getTime();
+      } else if (sortField === 'createdAt') {
+        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredTickets, sortField, sortDirection]);
+
+  const renderSortIcon = (field: TicketSortField) => {
+    const isSorted = sortField === field;
+    return (
+      <span className="inline-flex items-center ml-1 text-slate-400 group-hover:text-indigo-600 transition-colors">
+        {!isSorted && <ArrowUpDown className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 shrink-0" />}
+        {isSorted && sortDirection === 'asc' && <ArrowUp className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+        {isSorted && sortDirection === 'desc' && <ArrowDown className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+      </span>
+    );
+  };
 
   const renderStatusBadge = (status: TicketStatus) => {
     switch (status) {
@@ -401,15 +462,65 @@ export const TicketList: React.FC<TicketListProps> = ({
             </colgroup>
             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-6 text-left whitespace-nowrap">Chamado / Título</th>
-                <th className="py-3.5 px-4 text-left whitespace-nowrap">Prioridade</th>
-                <th className="py-3.5 px-4 text-left whitespace-nowrap">Status</th>
-                <th className="py-3.5 px-4 text-left whitespace-nowrap">SLA Restante</th>
-                <th className="py-3.5 px-6 text-right whitespace-nowrap">Ações</th>
+                <th className="py-3 px-6 text-left whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('title')}
+                    className={`inline-flex items-center gap-1.5 font-semibold transition group ${
+                      sortField === 'title' ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                    title="Ordenar por Título / Chamado"
+                  >
+                    <span>Chamado / Título</span>
+                    {renderSortIcon('title')}
+                  </button>
+                </th>
+                <th className="py-3 px-4 text-left whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('priority')}
+                    className={`inline-flex items-center gap-1.5 font-semibold transition group ${
+                      sortField === 'priority' ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                    title="Ordenar por Prioridade"
+                  >
+                    <span>Prioridade</span>
+                    {renderSortIcon('priority')}
+                  </button>
+                </th>
+                <th className="py-3 px-4 text-left whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('status')}
+                    className={`inline-flex items-center gap-1.5 font-semibold transition group ${
+                      sortField === 'status' ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                    title="Ordenar por Status"
+                  >
+                    <span>Status</span>
+                    {renderSortIcon('status')}
+                  </button>
+                </th>
+                <th className="py-3 px-4 text-left whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('slaDeadline')}
+                    className={`inline-flex items-center gap-1.5 font-semibold transition group ${
+                      sortField === 'slaDeadline' ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                    title="Ordenar por SLA Restante"
+                  >
+                    <span>SLA Restante</span>
+                    {renderSortIcon('slaDeadline')}
+                  </button>
+                </th>
+                <th className="py-3 px-6 text-right whitespace-nowrap">
+                  <span className="font-semibold text-slate-500">Ações</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredTickets.length === 0 ? (
+              {sortedTickets.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-16 text-center text-slate-400">
                     <LifeBuoy className="w-8 h-8 mx-auto text-slate-300 stroke-1 mb-2" />
@@ -417,7 +528,7 @@ export const TicketList: React.FC<TicketListProps> = ({
                   </td>
                 </tr>
               ) : (
-                filteredTickets.map((ticket) => (
+                sortedTickets.map((ticket) => (
                   <tr
                     key={ticket.id}
                     onClick={() => onViewTicket(ticket)}
@@ -519,12 +630,12 @@ export const TicketList: React.FC<TicketListProps> = ({
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
-        {filteredTickets.length === 0 ? (
+        {sortedTickets.length === 0 ? (
           <div className="bg-white p-8 text-center text-slate-400 rounded-2xl border border-slate-200">
             Nenhum chamado encontrado.
           </div>
         ) : (
-          filteredTickets.map((ticket) => (
+          sortedTickets.map((ticket) => (
             <div
               key={ticket.id}
               onClick={() => onViewTicket(ticket)}

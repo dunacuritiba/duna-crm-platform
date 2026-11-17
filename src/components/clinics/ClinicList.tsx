@@ -16,7 +16,13 @@ import {
   FileText,
   Clock,
   Headphones,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
+
+type ClinicSortField = 'companyName' | 'technicalResponsible' | 'units' | 'contract' | 'doctors' | 'status';
+type SortDirection = 'asc' | 'desc';
 
 interface ClinicListProps {
   clinics: MedicalClinic[];
@@ -73,6 +79,74 @@ export const ClinicList: React.FC<ClinicListProps> = ({
       return matchesSearch && matchesContract;
     });
   }, [clinics, search, contractFilter]);
+
+  const [sortField, setSortField] = useState<ClinicSortField>('companyName');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const handleSort = (field: ClinicSortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedClinics = useMemo(() => {
+    return [...filteredClinics].sort((a, b) => {
+      let result = 0;
+      switch (sortField) {
+        case 'companyName': {
+          const nameA = (a.tradeName || a.companyName || '').toLowerCase();
+          const nameB = (b.tradeName || b.companyName || '').toLowerCase();
+          result = nameA.localeCompare(nameB);
+          break;
+        }
+        case 'technicalResponsible': {
+          const respA = (a.technicalResponsibleName || a.technicalResponsibleCrm || '').toLowerCase();
+          const respB = (b.technicalResponsibleName || b.technicalResponsibleCrm || '').toLowerCase();
+          result = respA.localeCompare(respB);
+          break;
+        }
+        case 'units': {
+          const countA = a.units?.length || 1;
+          const countB = b.units?.length || 1;
+          result = countA - countB;
+          break;
+        }
+        case 'contract': {
+          const endA = a.contractEndDate || '';
+          const endB = b.contractEndDate || '';
+          result = endA.localeCompare(endB);
+          break;
+        }
+        case 'doctors': {
+          const docsA = a.membersCount?.medicos || 0;
+          const docsB = b.membersCount?.medicos || 0;
+          result = docsA - docsB;
+          break;
+        }
+        case 'status': {
+          const statA = a.status === 'ATIVO' ? 1 : 0;
+          const statB = b.status === 'ATIVO' ? 1 : 0;
+          result = statA - statB;
+          break;
+        }
+      }
+      return sortDirection === 'asc' ? result : -result;
+    });
+  }, [filteredClinics, sortField, sortDirection]);
+
+  const renderSortIcon = (field: ClinicSortField) => {
+    const isSorted = sortField === field;
+    return (
+      <span className="inline-flex items-center ml-1 text-slate-400 group-hover:text-indigo-600 transition-colors">
+        {!isSorted && <ArrowUpDown className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 shrink-0" />}
+        {isSorted && sortDirection === 'asc' && <ArrowUp className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+        {isSorted && sortDirection === 'desc' && <ArrowDown className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+      </span>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -248,17 +322,71 @@ export const ClinicList: React.FC<ClinicListProps> = ({
               </colgroup>
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-                  <th className="py-3.5 px-4 sm:px-6 text-left whitespace-nowrap">Clínica & Logo</th>
-                  <th className="py-3.5 px-4 text-left whitespace-nowrap">Responsável Técnico</th>
-                  <th className="py-3.5 px-4 text-left whitespace-nowrap">Unidades / Atendimento</th>
-                  <th className="py-3.5 px-4 text-left whitespace-nowrap">Contrato & Vigência</th>
-                  <th className="py-3.5 px-4 text-left whitespace-nowrap">Corpo Clínico</th>
-                  <th className="py-3.5 px-4 text-left whitespace-nowrap">Status</th>
+                  <th className="py-3.5 px-4 sm:px-6 text-left whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => handleSort('companyName')}
+                      className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                    >
+                      <span>Clínica & Logo</span>
+                      {renderSortIcon('companyName')}
+                    </button>
+                  </th>
+                  <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => handleSort('technicalResponsible')}
+                      className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                    >
+                      <span>Responsável Técnico</span>
+                      {renderSortIcon('technicalResponsible')}
+                    </button>
+                  </th>
+                  <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => handleSort('units')}
+                      className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                    >
+                      <span>Unidades / Atendimento</span>
+                      {renderSortIcon('units')}
+                    </button>
+                  </th>
+                  <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => handleSort('contract')}
+                      className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                    >
+                      <span>Contrato & Vigência</span>
+                      {renderSortIcon('contract')}
+                    </button>
+                  </th>
+                  <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => handleSort('doctors')}
+                      className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                    >
+                      <span>Corpo Clínico</span>
+                      {renderSortIcon('doctors')}
+                    </button>
+                  </th>
+                  <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => handleSort('status')}
+                      className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                    >
+                      <span>Status</span>
+                      {renderSortIcon('status')}
+                    </button>
+                  </th>
                   <th className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredClinics.map((clinic) => {
+                {sortedClinics.map((clinic) => {
                   const doctors = clinic.membersCount?.medicos || 0;
                   const secretaries = clinic.membersCount?.secretarias || 0;
                   const unitCount = clinic.units?.length || 1;

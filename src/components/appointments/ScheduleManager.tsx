@@ -18,7 +18,13 @@ import {
   Trash2,
   MessageCircle,
   ShieldCheck,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
+
+type ApptSortField = 'dateTime' | 'patientName' | 'clinic' | 'doctor' | 'status';
+type SortDirection = 'asc' | 'desc';
 
 interface ScheduleManagerProps {
   currentUser: User;
@@ -131,6 +137,76 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
     const concluidos = filteredAppointments.filter((a) => a.status === 'CONCLUIDO').length;
     return { total, agendados, confirmados, concluidos };
   }, [filteredAppointments]);
+
+  // Sorting state & comparator
+  const [sortField, setSortField] = useState<ApptSortField>('dateTime');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const handleSort = (field: ApptSortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedAppointments = useMemo(() => {
+    const statusRank: Record<string, number> = {
+      AGENDADO: 1,
+      CONFIRMADO: 2,
+      EM_ANDAMENTO: 3,
+      CONCLUIDO: 4,
+      CANCELADO: 5,
+      NAO_COMPARECEU: 6,
+    };
+
+    return [...filteredAppointments].sort((a, b) => {
+      let result = 0;
+      switch (sortField) {
+        case 'dateTime': {
+          const dtA = `${a.appointmentDate} ${a.appointmentTime}`;
+          const dtB = `${b.appointmentDate} ${b.appointmentTime}`;
+          result = dtA.localeCompare(dtB);
+          break;
+        }
+        case 'patientName': {
+          result = a.patientName.localeCompare(b.patientName);
+          break;
+        }
+        case 'clinic': {
+          const clA = (a.clinicName || '').toLowerCase();
+          const clB = (b.clinicName || '').toLowerCase();
+          result = clA.localeCompare(clB);
+          break;
+        }
+        case 'doctor': {
+          const docA = (a.doctorName || '').toLowerCase();
+          const docB = (b.doctorName || '').toLowerCase();
+          result = docA.localeCompare(docB);
+          break;
+        }
+        case 'status': {
+          const rankA = statusRank[a.status] || 99;
+          const rankB = statusRank[b.status] || 99;
+          result = rankA - rankB;
+          break;
+        }
+      }
+      return sortDirection === 'asc' ? result : -result;
+    });
+  }, [filteredAppointments, sortField, sortDirection]);
+
+  const renderSortIcon = (field: ApptSortField) => {
+    const isSorted = sortField === field;
+    return (
+      <span className="inline-flex items-center ml-1 text-slate-400 group-hover:text-indigo-600 transition-colors">
+        {!isSorted && <ArrowUpDown className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 shrink-0" />}
+        {isSorted && sortDirection === 'asc' && <ArrowUp className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+        {isSorted && sortDirection === 'desc' && <ArrowDown className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+      </span>
+    );
+  };
 
   // Handle open create modal
   const handleOpenCreate = () => {
@@ -400,16 +476,61 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
             </colgroup>
             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-4 whitespace-nowrap">Horário / Data</th>
-                <th className="py-3 px-4 whitespace-nowrap">Paciente</th>
-                <th className="py-3 px-4 whitespace-nowrap">Clínica & Unidade</th>
-                <th className="py-3 px-4 whitespace-nowrap">Médico / Especialidade</th>
-                <th className="py-3 px-4 whitespace-nowrap">Status</th>
+                <th className="py-3 px-4 whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('dateTime')}
+                    className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                  >
+                    <span>Horário / Data</span>
+                    {renderSortIcon('dateTime')}
+                  </button>
+                </th>
+                <th className="py-3 px-4 whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('patientName')}
+                    className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                  >
+                    <span>Paciente</span>
+                    {renderSortIcon('patientName')}
+                  </button>
+                </th>
+                <th className="py-3 px-4 whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('clinic')}
+                    className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                  >
+                    <span>Clínica & Unidade</span>
+                    {renderSortIcon('clinic')}
+                  </button>
+                </th>
+                <th className="py-3 px-4 whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('doctor')}
+                    className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                  >
+                    <span>Médico / Especialidade</span>
+                    {renderSortIcon('doctor')}
+                  </button>
+                </th>
+                <th className="py-3 px-4 whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('status')}
+                    className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                  >
+                    <span>Status</span>
+                    {renderSortIcon('status')}
+                  </button>
+                </th>
                 <th className="py-3 px-4 text-right whitespace-nowrap">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredAppointments.length === 0 ? (
+              {sortedAppointments.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-slate-400">
                     <CalendarIcon className="w-8 h-8 mx-auto mb-2 opacity-40" />
@@ -417,7 +538,7 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({
                   </td>
                 </tr>
               ) : (
-                filteredAppointments.map((appt) => {
+                sortedAppointments.map((appt) => {
                   return (
                     <tr key={appt.id} className="hover:bg-slate-50/70 transition-colors">
                       {/* Horário & Data */}

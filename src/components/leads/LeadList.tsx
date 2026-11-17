@@ -20,7 +20,13 @@ import {
   List,
   TrendingUp,
   User,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
+
+type LeadSortField = 'name' | 'contactName' | 'status' | 'temperature' | 'estimatedValue' | 'city';
+type SortDirection = 'asc' | 'desc';
 
 interface LeadListProps {
   leads: Lead[];
@@ -82,6 +88,90 @@ export const LeadList: React.FC<LeadListProps> = ({
       return matchesSearch && matchesTemp && matchesStatus;
     });
   }, [leads, search, temperatureFilter, statusFilter]);
+
+  const [sortField, setSortField] = useState<LeadSortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const handleSort = (field: LeadSortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedLeads = useMemo(() => {
+    const leadStatusRank: Record<string, number> = {
+      NOVO: 1,
+      CONTATO_REALIZADO: 2,
+      QUALIFICADO: 3,
+      PROPOSTA_ENVIADA: 4,
+      NEGOCIACAO: 5,
+      CONVERTIDO: 6,
+      PERDIDO: 7,
+    };
+
+    const leadTempRank: Record<string, number> = {
+      QUENTE: 1,
+      MORNO: 2,
+      FRIO: 3,
+    };
+
+    return [...filteredLeads].sort((a, b) => {
+      let result = 0;
+      switch (sortField) {
+        case 'name': {
+          const nameA = (a.companyName || a.name || '').toLowerCase();
+          const nameB = (b.companyName || b.name || '').toLowerCase();
+          result = nameA.localeCompare(nameB);
+          break;
+        }
+        case 'contactName': {
+          const cA = (a.contactName || '').toLowerCase();
+          const cB = (b.contactName || '').toLowerCase();
+          result = cA.localeCompare(cB);
+          break;
+        }
+        case 'status': {
+          const rA = leadStatusRank[a.status] || 99;
+          const rB = leadStatusRank[b.status] || 99;
+          result = rA - rB;
+          break;
+        }
+        case 'temperature': {
+          const tA = leadTempRank[a.temperature] || 99;
+          const tB = leadTempRank[b.temperature] || 99;
+          result = tA - tB;
+          break;
+        }
+        case 'estimatedValue': {
+          const vA = a.estimatedValue || 0;
+          const vB = b.estimatedValue || 0;
+          result = vA - vB;
+          break;
+        }
+        case 'city': {
+          const cityA = (a.city || '').toLowerCase();
+          const cityB = (b.city || '').toLowerCase();
+          result = cityA.localeCompare(cityB);
+          break;
+        }
+      }
+      return sortDirection === 'asc' ? result : -result;
+    });
+  }, [filteredLeads, sortField, sortDirection]);
+
+  const renderSortIcon = (field: LeadSortField) => {
+    const isSorted = sortField === field;
+    return (
+      <span className="inline-flex items-center ml-1 text-slate-400 group-hover:text-indigo-600 transition-colors">
+        {!isSorted && <ArrowUpDown className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 shrink-0" />}
+        {isSorted && sortDirection === 'asc' && <ArrowUp className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+        {isSorted && sortDirection === 'desc' && <ArrowDown className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+      </span>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -369,17 +459,71 @@ export const LeadList: React.FC<LeadListProps> = ({
                 </colgroup>
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-                    <th className="py-3.5 px-4 sm:px-6 text-left whitespace-nowrap">Lead / Instituição</th>
-                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Pessoa Decisora</th>
-                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Estágio</th>
-                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Temperatura</th>
-                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Valor Estimado</th>
-                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Localização</th>
+                    <th className="py-3.5 px-4 sm:px-6 text-left whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('name')}
+                        className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                      >
+                        <span>Lead / Instituição</span>
+                        {renderSortIcon('name')}
+                      </button>
+                    </th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('contactName')}
+                        className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                      >
+                        <span>Pessoa Decisora</span>
+                        {renderSortIcon('contactName')}
+                      </button>
+                    </th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('status')}
+                        className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                      >
+                        <span>Estágio</span>
+                        {renderSortIcon('status')}
+                      </button>
+                    </th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('temperature')}
+                        className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                      >
+                        <span>Temperatura</span>
+                        {renderSortIcon('temperature')}
+                      </button>
+                    </th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('estimatedValue')}
+                        className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                      >
+                        <span>Valor Estimado</span>
+                        {renderSortIcon('estimatedValue')}
+                      </button>
+                    </th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('city')}
+                        className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                      >
+                        <span>Localização</span>
+                        {renderSortIcon('city')}
+                      </button>
+                    </th>
                     <th className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredLeads.map((lead) => (
+                  {sortedLeads.map((lead) => (
                     <tr
                       key={lead.id}
                       className="hover:bg-slate-50/70 transition group cursor-pointer"

@@ -12,6 +12,9 @@ import {
   Building,
   Edit2,
   Briefcase,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 
 interface UserListProps {
@@ -24,6 +27,9 @@ interface UserListProps {
   onOpenEditModal: (user: User) => void;
   onOpenPortfolioModal: (user: User) => void;
 }
+
+type UserSortField = 'name' | 'role' | 'status';
+type SortDirection = 'asc' | 'desc';
 
 export const UserList: React.FC<UserListProps> = ({
   users,
@@ -38,6 +44,17 @@ export const UserList: React.FC<UserListProps> = ({
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'ALL' | UserRole>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | UserStatus | 'ONLINE'>('ALL');
+  const [sortField, setSortField] = useState<UserSortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const handleSort = (field: UserSortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   // Filtered users
   const filteredUsers = useMemo(() => {
@@ -57,6 +74,41 @@ export const UserList: React.FC<UserListProps> = ({
       return matchSearch && matchRole && matchStatus;
     });
   }, [users, search, roleFilter, statusFilter, currentUserId, onlineUserIds]);
+
+  const sortedUsers = useMemo(() => {
+    return [...filteredUsers].sort((a, b) => {
+      let comparison = 0;
+      if (sortField === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else if (sortField === 'role') {
+        const roleOrder: Record<string, number> = {
+          ADMIN: 3,
+          ATENDENTE: 2,
+          USUARIO: 1,
+        };
+        comparison = (roleOrder[a.role] || 0) - (roleOrder[b.role] || 0);
+      } else if (sortField === 'status') {
+        const statusOrder: Record<string, number> = {
+          ATIVO: 1,
+          PENDENTE: 2,
+          INATIVO: 3,
+        };
+        comparison = (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredUsers, sortField, sortDirection]);
+
+  const renderSortIcon = (field: UserSortField) => {
+    const isSorted = sortField === field;
+    return (
+      <span className="inline-flex items-center ml-1 text-slate-400 group-hover:text-indigo-600 transition-colors">
+        {!isSorted && <ArrowUpDown className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 shrink-0" />}
+        {isSorted && sortDirection === 'asc' && <ArrowUp className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+        {isSorted && sortDirection === 'desc' && <ArrowDown className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+      </span>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -199,21 +251,48 @@ export const UserList: React.FC<UserListProps> = ({
             </colgroup>
             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-6 text-left whitespace-nowrap">Usuário</th>
-                <th className="py-3.5 px-4 text-left whitespace-nowrap">Perfil</th>
-                <th className="py-3.5 px-4 text-left whitespace-nowrap">Status</th>
+                <th className="py-3.5 px-6 text-left whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('name')}
+                    className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                  >
+                    <span>Usuário</span>
+                    {renderSortIcon('name')}
+                  </button>
+                </th>
+                <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('role')}
+                    className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                  >
+                    <span>Perfil</span>
+                    {renderSortIcon('role')}
+                  </button>
+                </th>
+                <th className="py-3.5 px-4 text-left whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('status')}
+                    className="inline-flex items-center gap-1.5 hover:text-indigo-600 transition group focus:outline-none"
+                  >
+                    <span>Status</span>
+                    {renderSortIcon('status')}
+                  </button>
+                </th>
                 <th className="py-3.5 px-6 text-right whitespace-nowrap">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredUsers.length === 0 ? (
+              {sortedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-slate-400">
                     Nenhum usuário encontrado para os critérios selecionados.
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => {
+                sortedUsers.map((user) => {
                   const isCurrent = user.id === currentUserId;
                   const online = isUserOnline(user, currentUserId, onlineUserIds);
 
@@ -350,12 +429,12 @@ export const UserList: React.FC<UserListProps> = ({
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
-        {filteredUsers.length === 0 ? (
+        {sortedUsers.length === 0 ? (
           <div className="bg-white p-8 text-center text-slate-400 rounded-2xl border border-slate-200">
             Nenhum usuário encontrado.
           </div>
         ) : (
-          filteredUsers.map((user) => {
+          sortedUsers.map((user) => {
             const isCurrent = user.id === currentUserId;
             const online = isUserOnline(user, currentUserId, onlineUserIds);
 
